@@ -1,0 +1,255 @@
+/* ============================================================
+   ROCK N' WOK — Colors & Typography
+   Urbano · moderno · atrevido · energético
+   ============================================================ */
+
+/* ---------- FONT FACES ---------- */
+@font-face {
+  font-family: "Monument Extended";
+  src: url("./fonts/MonumentExtended-Ultrabold.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("./fonts/Montserrat-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("./fonts/Montserrat-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================
+   COLOR TOKENS
+   Black + Yellow + White are the dominant trio.
+   Orange + Green are accent-only. Use sparingly.
+   ============================================================ */
+:root {
+  /* --- Brand primitives (from Paleta de colores) --- */
+  --rnw-black:        #000000;   /* Pantone Process Black — full black, NO process */
+  --rnw-yellow:       #FFCD02;   /* Pantone 116 — the signature yellow */
+  --rnw-orange:       #E84926;   /* Pantone 172 — accent only */
+  --rnw-green:        #29E7BC;   /* Pantone 3289 — accent only */
+  --rnw-white:        #FFFFFF;
+
+  /* --- Tonal variants (for hover, press, surfaces) --- */
+  --rnw-black-90:     #0A0A0A;
+  --rnw-black-80:     #1A1A1A;
+  --rnw-black-70:     #262626;
+  --rnw-yellow-dark:  #E6B800;   /* press state */
+  --rnw-yellow-soft:  #FFF1A8;   /* low-emphasis tint */
+  --rnw-orange-dark:  #C73813;
+  --rnw-green-dark:   #1FB897;
+
+  /* --- Semantic: foreground (text/icons) --- */
+  --fg-1:   var(--rnw-white);          /* primary on dark */
+  --fg-2:   rgba(255, 255, 255, 0.72); /* secondary on dark */
+  --fg-3:   rgba(255, 255, 255, 0.48); /* tertiary on dark */
+  --fg-accent: var(--rnw-yellow);
+
+  /* For light surfaces */
+  --fg-1-on-light: var(--rnw-black);
+  --fg-2-on-light: rgba(0, 0, 0, 0.72);
+  --fg-3-on-light: rgba(0, 0, 0, 0.48);
+
+  /* --- Semantic: background --- */
+  --bg-1: var(--rnw-black);            /* canvas */
+  --bg-2: var(--rnw-black-80);         /* elevated surface */
+  --bg-3: var(--rnw-black-70);         /* card / well */
+  --bg-light: var(--rnw-white);
+
+  /* --- Borders / dividers --- */
+  --border-1: rgba(255, 255, 255, 0.12);
+  --border-2: rgba(255, 255, 255, 0.24);
+  --border-strong: var(--rnw-yellow);
+
+  /* --- Semantic intent --- */
+  --intent-primary: var(--rnw-yellow);
+  --intent-on-primary: var(--rnw-black);
+  --intent-accent-warm: var(--rnw-orange);
+  --intent-accent-cool: var(--rnw-green);
+
+  /* ============================================================
+     TYPOGRAPHY TOKENS
+     ============================================================ */
+  --font-display: "Monument Extended", "Arial Black", sans-serif;
+  --font-body: "Montserrat", system-ui, -apple-system, sans-serif;
+
+  /* Weights (Montserrat is variable 100-900) */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --weight-black: 900;
+
+  /* Type scale — built for 1920×1080 slides, scales down well */
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-md:   20px;
+  --text-lg:   24px;
+  --text-xl:   32px;
+  --text-2xl:  44px;
+  --text-3xl:  64px;
+  --text-4xl:  96px;
+  --text-5xl:  144px;
+  --text-6xl:  200px;
+
+  /* Line heights */
+  --lh-tight: 0.95;   /* @kind other */
+  --lh-snug: 1.1;     /* @kind other */
+  --lh-normal: 1.35;  /* @kind other */
+  --lh-loose: 1.6;    /* @kind other */
+
+  /* Letter spacing */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-wider: 0.08em;
+  --tracking-widest: 0.16em;   /* labels, kickers */
+
+  /* ============================================================
+     SPACING + RADII + SHADOWS
+     ============================================================ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* Shadows are RARE in this brand — flatness + contrast carry it. */
+  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.32);
+  --shadow-hard: 0 12px 0 0 var(--rnw-yellow);   /* offset block, never blur */
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   ============================================================ */
+
+/* Display — Monument Extended Ultrabold. Use for hero titles. */
+.rnw-display-xxl,
+.rnw-display-xl,
+.rnw-display-lg,
+.rnw-display-md {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+.rnw-display-xxl { font-size: var(--text-6xl); }
+.rnw-display-xl  { font-size: var(--text-5xl); }
+.rnw-display-lg  { font-size: var(--text-4xl); }
+.rnw-display-md  { font-size: var(--text-3xl); }
+
+/* H1–H4 — Monument by default for max impact */
+.rnw-h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-3xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  text-transform: uppercase;
+}
+.rnw-h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-2xl);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+}
+.rnw-h3 {
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: var(--text-xl);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+.rnw-h4 {
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: var(--text-lg);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Kicker / Eyebrow — for "PROYECTO:" style labels.
+   Montserrat at heaviest weight, all caps, wide tracking. */
+.rnw-kicker {
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: var(--text-sm);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  color: var(--rnw-yellow);
+}
+.rnw-kicker-lg {
+  font-family: var(--font-body);
+  font-weight: 900;
+  font-size: var(--text-md);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+/* Body */
+.rnw-body-lg {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-md);
+  line-height: var(--lh-normal);
+}
+.rnw-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-base);
+  line-height: var(--lh-normal);
+}
+.rnw-body-sm {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-sm);
+  line-height: var(--lh-normal);
+}
+
+/* Caption / micro */
+.rnw-caption {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  line-height: var(--lh-normal);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+/* Utility helpers */
+.rnw-bg-black { background: var(--rnw-black); color: var(--fg-1); }
+.rnw-bg-yellow { background: var(--rnw-yellow); color: var(--rnw-black); }
+.rnw-bg-white { background: var(--rnw-white); color: var(--rnw-black); }
+.rnw-text-yellow { color: var(--rnw-yellow); }
+.rnw-text-orange { color: var(--rnw-orange); }
+.rnw-text-green { color: var(--rnw-green); }

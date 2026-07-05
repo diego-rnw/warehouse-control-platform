@@ -1,0 +1,69 @@
+/* ================================================================
+   Control de Almacén — theme tokens
+   Ported from the Claude Design prototype (project/Control de Almacen.dc.html)
+   Dark is the default; [data-theme="light"] overrides.
+   ================================================================ */
+
+@font-face {
+  font-family: 'Monument Extended';
+  src: url('../assets/fonts/MonumentExtended-Ultrabold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('../assets/fonts/Montserrat-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  src: url('../assets/fonts/Montserrat-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --rnw-yellow: #FFCD02;
+  --rnw-orange: #E84926;
+  --rnw-green: #29E7BC;
+}
+
+#ca-app {
+  --page: #000;        --canvas: #0a0a0a;   --surface: #111;     --well: #0a0a0a;    --hover: #161616;
+  --border: #1e1e1e;   --border-in: #252525; --divider: #141414;  --divider-2: #181818;
+  --t1: #fff;  --t2: #d6d6da; --t3: #b8b8bd; --t4: #9fa0a5; --t5: #8f9095; --t6: #8f9095; --t7: #86878c; --t8: #7d7e83; --t9: #808186;
+  --chip-ok-bg: #0a2218; --chip-ok-bd: #1a4232; --chip-ok-tx: #29E7BC;
+  --chip-warn-bg: #1e0800; --chip-warn-bd: #3a1200; --chip-warn-tx: #E84926;
+  --chip-mut-bg: #181818; --chip-mut-bd: #282828; --chip-mut-tx: #9a9aa0;
+  --chip-pur-bg: #1a0820; --chip-pur-bd: #3a1240; --chip-pur-tx: #cc66ee;
+  --chip-off-bg: #141414; --chip-off-bd: #222; --chip-off-tx: #444;
+  --org-alm-bg: #1a1400; --org-alm-bd: #2a2000; --org-alm-tx: #FFCD02;
+  --org-coc-bg: #1a0800; --org-coc-bd: #2a1000; --org-coc-tx: #E84926;
+  --row-diff: #180800; --row-none: #12001e; --row-lowc: #1a0a00; --row-medc: #110f00;
+  --tab-active-bg: #1a1400;
+}
+
+#ca-app[data-theme="light"] {
+  --page: #000;        --canvas: #f4f4f5;   --surface: #ffffff;  --well: #f7f7f8;    --hover: #eeeeef;
+  --border: #e4e4e7;   --border-in: #d4d4d7; --divider: #ededee;  --divider-2: #e8e8ea;
+  --t1: #18181b; --t2: #3f3f46; --t3: #52525b; --t4: #71717a; --t5: #8a8a92; --t6: #a1a1aa; --t7: #b5b5bc; --t8: #c2c2c8; --t9: #d4d4d8;
+  --chip-ok-bg: #e2f9f2; --chip-ok-bd: #a3e6d5; --chip-ok-tx: #0e8f72;
+  --chip-warn-bg: #fdebe5; --chip-warn-bd: #f5c3b4; --chip-warn-tx: #c73813;
+  --chip-mut-bg: #ececee; --chip-mut-bd: #d8d8dc; --chip-mut-tx: #71717a;
+  --chip-pur-bg: #f4e8fb; --chip-pur-bd: #e0b8f0; --chip-pur-tx: #9b30c8;
+  --chip-off-bg: #ededee; --chip-off-bd: #dcdce0; --chip-off-tx: #9a9aa2;
+  --org-alm-bg: #fff6cf; --org-alm-bd: #ecd98a; --org-alm-tx: #7a6000;
+  --org-coc-bg: #fdebe5; --org-coc-bd: #f5c3b4; --org-coc-tx: #c73813;
+  --row-diff: #fdf0ea; --row-none: #f8eefc; --row-lowc: #fdf2e8; --row-medc: #fdfbec;
+  --tab-active-bg: #fff8dc;
+}
+
+/* Importe (amounts) needs a darker amber on light surfaces for legibility — see chat1 */
+#ca-app { --importe-color: #FFCD02; }
+#ca-app[data-theme="light"] { --importe-color: #8a6d00; }

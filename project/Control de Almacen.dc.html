@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+  <helmet>
+  <link rel="stylesheet" href="_ds/rock-n-wok-design-system-019df448-cefb-720a-8ac7-c77c90e71ccf/colors_and_type.css">
+  <script src="_ds/rock-n-wok-design-system-019df448-cefb-720a-8ac7-c77c90e71ccf/_ds_bundle.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif; font-size: 14px; }
+    body:has(#ca-app[data-ca-theme="light"]) { background: #f4f4f5; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 0; }
+    #ca-app[data-ca-theme="light"] ::-webkit-scrollbar-track { background: #e8e8ea; }
+    #ca-app[data-ca-theme="light"] ::-webkit-scrollbar-thumb { background: #c2c2c8; }
+    input, select, textarea, button { font-family: inherit; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid #FFCD02; outline-offset: -1px; }
+    button:focus-visible { outline: 2px solid #FFCD02; outline-offset: 2px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== THEME TOKENS — dark defaults, [data-ca-theme="light"] overrides ===== */
+    #ca-app {
+      --page: #000;        --canvas: #0a0a0a;   --surface: #111;     --well: #0a0a0a;    --hover: #161616;
+      --border: #1e1e1e;   --border-in: #252525; --divider: #141414;  --divider-2: #181818;
+      --t1: #fff;  --t2: #d6d6da; --t3: #b8b8bd; --t4: #9fa0a5; --t5: #8f9095; --t6: #8f9095; --t7: #86878c; --t8: #7d7e83; --t9: #808186;
+      --chip-ok-bg: #0a2218; --chip-ok-bd: #1a4232; --chip-ok-tx: #29E7BC;
+      --chip-warn-bg: #1e0800; --chip-warn-bd: #3a1200; --chip-warn-tx: #E84926;
+      --chip-mut-bg: #181818; --chip-mut-bd: #282828; --chip-mut-tx: #9a9aa0;
+      --chip-pur-bg: #1a0820; --chip-pur-bd: #3a1240; --chip-pur-tx: #cc66ee;
+      --chip-off-bg: #141414; --chip-off-bd: #222; --chip-off-tx: #444;
+      --org-alm-bg: #1a1400; --org-alm-bd: #2a2000; --org-alm-tx: #FFCD02;
+      --org-coc-bg: #1a0800; --org-coc-bd: #2a1000; --org-coc-tx: #E84926;
+      --row-diff: #180800; --row-none: #12001e; --row-lowc: #1a0a00; --row-medc: #110f00;
+      --tab-active-bg: #1a1400;
+    }
+    #ca-app[data-ca-theme="light"] {
+      --page: #000;        --canvas: #f4f4f5;   --surface: #ffffff;  --well: #f7f7f8;    --hover: #eeeeef;
+      --border: #e4e4e7;   --border-in: #d4d4d7; --divider: #ededee;  --divider-2: #e8e8ea;
+      --t1: #18181b; --t2: #3f3f46; --t3: #52525b; --t4: #71717a; --t5: #8a8a92; --t6: #a1a1aa; --t7: #b5b5bc; --t8: #c2c2c8; --t9: #d4d4d8;
+      --chip-ok-bg: #e2f9f2; --chip-ok-bd: #a3e6d5; --chip-ok-tx: #0e8f72;
+      --chip-warn-bg: #fdebe5; --chip-warn-bd: #f5c3b4; --chip-warn-tx: #c73813;
+      --chip-mut-bg: #ececee; --chip-mut-bd: #d8d8dc; --chip-mut-tx: #71717a;
+      --chip-pur-bg: #f4e8fb; --chip-pur-bd: #e0b8f0; --chip-pur-tx: #9b30c8;
+      --chip-off-bg: #ededee; --chip-off-bd: #dcdce0; --chip-off-tx: #9a9aa2;
+      --org-alm-bg: #fff6cf; --org-alm-bd: #ecd98a; --org-alm-tx: #7a6000;
+      --org-coc-bg: #fdebe5; --org-coc-bd: #f5c3b4; --org-coc-tx: #c73813;
+      --row-diff: #fdf0ea; --row-none: #f8eefc; --row-lowc: #fdf2e8; --row-medc: #fdfbec;
+      --tab-active-bg: #fff8dc;
+    }
+  </style>
+  </helmet>
+
+<div id="ca-app" data-ca-theme="{{ themeAttr }}" style="min-height: 100vh; background: var(--canvas); display: flex; flex-direction: column;">
+
+  <!-- ===== LOGIN ===== -->
+  <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ true }}">
+    <div style="min-height: 100vh; background: #000; display: flex; align-items: center; justify-content: center; padding: 24px;">
+      <div style="width: 100%; max-width: 380px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 40px; justify-content: center;">
+          <img src="_ds/rock-n-wok-design-system-019df448-cefb-720a-8ac7-c77c90e71ccf/assets/logo-rnw-white-on-black.png" style="height: 30px; width: auto;" alt="RNW">
+        </div>
+        <p style="font-size: 10px; letter-spacing: 0.18em; color: #7a7a80; font-weight: 700; text-transform: uppercase; text-align: center; margin-bottom: 6px;">PANEL OPERATIVO</p>
+        <h1 style="font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.01em; text-align: center; margin-bottom: 32px;">Control de Almacén</h1>
+
+        <form onSubmit="{{ handleLoginSubmit }}" style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 10px; color: #8a8a90; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Correo</label>
+            <input type="email" value="{{ authEmail }}" onChange="{{ setAuthEmail }}" placeholder="nombre@rocknwok.mx" autoComplete="username" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 12px 14px; font-size: 14px;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 10px; color: #8a8a90; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Contraseña</label>
+            <input type="password" value="{{ authPassword }}" onChange="{{ setAuthPassword }}" placeholder="••••••••" autoComplete="current-password" style="background: #111; border: 1px solid #2a2a2a; color: #fff; padding: 12px 14px; font-size: 14px;">
+          </div>
+          <sc-if value="{{ hasAuthError }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size: 12px; color: #E84926; font-weight: 600; margin-top: -4px;">{{ authError }}</p>
+          </sc-if>
+          <button type="submit" disabled="{{ isAuthLoading }}" style="{{ loginBtnStyle }}">{{ loginBtnLabel }}</button>
+        </form>
+        <p style="font-size: 11px; color: #5a5a60; text-align: center; margin-top: 24px; line-height: 1.6;">Acceso exclusivo para personal de Almacén Central.<br>¿Problemas para entrar? Contacta a sistemas.</p>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== APP ===== -->
+  <sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
+
+  <!-- ===== NAV (siempre oscura — firma de marca) ===== -->
+  <header style="background: #000; border-bottom: 2px solid #FFCD02; padding: 0 28px; display: flex; align-items: stretch; height: 52px; flex-shrink: 0; position: sticky; top: 0; z-index: 100;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-right: 32px; flex-shrink: 0;">
+      <img src="_ds/rock-n-wok-design-system-019df448-cefb-720a-8ac7-c77c90e71ccf/assets/logo-rnw-white-on-black.png" style="height: 22px; width: auto;" alt="RNW">
+      <span style="width: 1px; height: 16px; background: #2a2a2a; display: block; flex-shrink: 0;"></span>
+      <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.14em; color: #FFCD02; text-transform: uppercase; white-space: nowrap;">Control de Almacén</span>
+    </div>
+    <nav style="display: flex; align-items: stretch; gap: 0;">
+      <button onClick="{{ goToDashboard }}" style="{{ navDashStyle }}">DASHBOARD</button>
+      <button onClick="{{ goToRequisiciones }}" style="{{ navReqStyle }}">
+        REQUISICIONES
+        <sc-if value="{{ hasDiffBadge }}" hint-placeholder-val="{{ false }}">
+          <span style="{{ diffBadgeStyle }}">{{ diffBadgeCount }}</span>
+        </sc-if>
+      </button>
+      <button onClick="{{ goToComparativo }}" style="{{ navCompStyle }}">COMPARATIVO</button>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+      <button onClick="{{ toggleTheme }}" title="Cambiar tema" style="background: transparent; border: 1px solid #2a2a2a; color: #b0b0b5; padding: 6px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; height: 30px;" style-hover="border-color: #FFCD02; color: #FFCD02;">
+        <span style="font-size: 12px; line-height: 1;">{{ themeBtnIcon }}</span>{{ themeBtnLabel }}
+      </button>
+      <div style="{{ onlineDotStyle }}"></div>
+      <span style="font-size: 11px; color: #9a9aa0; font-weight: 600; letter-spacing: 0.02em;">{{ authUserLabel }}</span>
+      <button onClick="{{ handleLogout }}" title="Cerrar sesión" style="background: transparent; border: 1px solid #2a2a2a; color: #b0b0b5; padding: 6px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase;" style-hover="border-color: #E84926; color: #E84926;">SALIR</button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main style="flex: 1; overflow-y: auto; background: var(--canvas);">
+
+    <!-- ======= DASHBOARD ======= -->
+    <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+      <div style="padding: 28px 32px; max-width: 1440px; margin: 0 auto;">
+
+        <!-- Page header -->
+        <div style="margin-bottom: 24px;">
+          <p style="font-size: 10px; letter-spacing: 0.18em; color: var(--t5); margin-bottom: 4px; font-weight: 700; text-transform: uppercase;">PANEL OPERATIVO</p>
+          <h1 style="font-size: 24px; font-weight: 800; color: var(--t1); letter-spacing: -0.01em; line-height: 1.15;">Requisiciones de Insumos</h1>
+        </div>
+
+        <!-- Filters -->
+        <div style="background: var(--surface); border: 1px solid var(--border); padding: 13px 20px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+          <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.16em; color: var(--t6); text-transform: uppercase; flex-shrink: 0;">FILTROS</span>
+          <span style="width: 1px; height: 14px; background: var(--border-in); display: block; flex-shrink: 0;"></span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 10px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Desde</label>
+            <input type="date" value="{{ filterDateFrom }}" onChange="{{ setFilterDateFrom }}" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t2); padding: 5px 10px; font-size: 12px; width: 148px;">
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 10px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Hasta</label>
+            <input type="date" value="{{ filterDateTo }}" onChange="{{ setFilterDateTo }}" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t2); padding: 5px 10px; font-size: 12px; width: 148px;">
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 10px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Sucursal</label>
+            <select value="{{ filterSucursal }}" onChange="{{ setFilterSucursal }}" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t2); padding: 5px 10px; font-size: 12px; cursor: pointer; min-width: 160px;">
+              <option value="all">Todas las sucursales</option>
+              <sc-for list="{{ allSucursales }}" as="suc">
+                <option value="{{ suc }}">{{ suc }}</option>
+              </sc-for>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stat cards (clickeables → filtran por estatus) -->
+        <div data-tour="dash-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+          <div onClick="{{ setFilterStatusAll }}" style="{{ statCardStyleAll }}">
+            <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px;">Total Requisiciones</p>
+            <p style="font-size: 44px; font-weight: 900; color: var(--t1); line-height: 1; letter-spacing: -0.02em;">{{ statTotal }}</p>
+            <p style="font-size: 10px; color: var(--t8); margin-top: 7px; font-weight: 600;">en el período · click para ver todas</p>
+          </div>
+          <div onClick="{{ setFilterStatusConciliada }}" style="{{ statCardStyleConciliada }}">
+            <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px;">Conciliadas sin ajuste</p>
+            <p style="font-size: 44px; font-weight: 900; color: #29E7BC; line-height: 1; letter-spacing: -0.02em;">{{ statConciliadas }}</p>
+            <p style="font-size: 10px; color: var(--t8); margin-top: 7px; font-weight: 600;">match perfecto Foodbot</p>
+          </div>
+          <div onClick="{{ setFilterStatusAjuste }}" style="{{ statCardStyleAjuste }}">
+            <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px;">Con Ajuste / Diferencias</p>
+            <p style="font-size: 44px; font-weight: 900; color: #E84926; line-height: 1; letter-spacing: -0.02em;">{{ statAjuste }}</p>
+            <p style="font-size: 10px; color: var(--t8); margin-top: 7px; font-weight: 600;">requieren revisión</p>
+          </div>
+          <div onClick="{{ setFilterStatusPendiente }}" style="{{ statCardStylePendiente }}">
+            <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px;">Pendiente Captura</p>
+            <p style="font-size: 44px; font-weight: 900; color: #FFCD02; line-height: 1; letter-spacing: -0.02em;">{{ statPendiente }}</p>
+            <p style="font-size: 10px; color: var(--t8); margin-top: 7px; font-weight: 600;">sin entrega registrada</p>
+          </div>
+        </div>
+
+        <!-- Active status filter indicator -->
+        <sc-if value="{{ hasStatusFilter }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; align-items: center; gap: 10px; margin: -10px 0 20px;">
+            <span style="font-size: 10px; color: var(--t7); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">Filtrando por:</span>
+            <span style="{{ activeStatusChipStyle }}">{{ activeStatusLabel }}</span>
+            <button onClick="{{ setFilterStatusAll }}" style="background: none; border: none; color: var(--t6); font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: underline;">Quitar filtro ✕</button>
+          </div>
+        </sc-if>
+
+        <!-- Importe total -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-top: 2px solid #FFCD02; padding: 16px 22px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+          <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Importe Total · valor de insumos en el período</p>
+          <p style="font-size: 28px; font-weight: 900; color: {{ importeColor }}; line-height: 1; letter-spacing: -0.02em;">{{ statImporte }}</p>
+        </div>
+
+        <!-- Tendencia de fricción mes a mes -->
+        <sc-if value="{{ hasMonthlyTrend }}" hint-placeholder-val="{{ false }}">
+          <div data-tour="dash-trend" style="background: var(--surface); border: 1px solid var(--border); padding: 16px 20px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+              <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--t6); text-transform: uppercase;">TENDENCIA DE FRICCIÓN MES A MES</span>
+              <span style="font-size: 9px; color: var(--t8); font-weight: 700; letter-spacing: 0.08em;">% REQUISICIONES CON AJUSTE/DIFERENCIA</span>
+            </div>
+            <div style="display: flex; align-items: flex-end; gap: 0;">
+              <svg viewBox="0 0 {{ trendSvgWidth }} 90" style="width: 100%; height: 90px; overflow: visible;">
+                <polyline points="{{ trendPolylinePoints }}" fill="none" stroke="#E84926" stroke-width="2"></polyline>
+                <sc-for list="{{ trendPoints }}" as="tp" hint-placeholder-count="3">
+                  <circle cx="{{ tp.x }}" cy="{{ tp.y }}" r="3.5" fill="#E84926"></circle>
+                </sc-for>
+              </svg>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 6px;">
+              <sc-for list="{{ trendPoints }}" as="tp2" hint-placeholder-count="3">
+                <div style="text-align: center;">
+                  <div style="font-size: 10px; color: var(--t6); font-weight: 700;">{{ tp2.label }}</div>
+                  <div style="font-size: 12px; color: var(--t3); font-weight: 800;">{{ tp2.pctStr }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- Two-column: branch table + recent list -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+
+          <!-- Branch breakdown -->
+          <div style="background: var(--surface); border: 1px solid var(--border);">
+            <div style="padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--t6); text-transform: uppercase;">FRICCIÓN POR SUCURSAL</span>
+              <span style="font-size: 9px; color: #E84926; font-weight: 700; letter-spacing: 0.08em;">MAYOR ARRIBA</span>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--divider-2);">
+                  <th style="text-align: left; padding: 8px 20px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Sucursal</th>
+                  <th style="text-align: right; padding: 8px 14px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Req.</th>
+                  <th style="text-align: right; padding: 8px 14px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Ajuste</th>
+                  <th style="text-align: right; padding: 8px 20px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Fricción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ sucursalBreakdown }}" as="branch">
+                  <tr style="border-bottom: 1px solid var(--divider);">
+                    <td style="padding: 10px 20px;">
+                      <div style="font-size: 13px; font-weight: 700; color: var(--t2); margin-bottom: 6px;">{{ branch.name }}</div>
+                      <div style="background: var(--divider-2); height: 3px; width: 110px;">
+                        <div style="{{ branch.barStyle }}"></div>
+                      </div>
+                    </td>
+                    <td style="padding: 10px 14px; text-align: right; font-size: 14px; font-weight: 700; color: var(--t5);">{{ branch.total }}</td>
+                    <td style="padding: 10px 14px; text-align: right;">
+                      <span style="{{ branch.ajusteStyle }}">{{ branch.ajuste }}</span>
+                    </td>
+                    <td style="padding: 10px 20px; text-align: right;">
+                      <span style="{{ branch.pctStyle }}">{{ branch.pct }}%</span>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Recent reqs -->
+          <div style="background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column;">
+            <div style="padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+              <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--t6); text-transform: uppercase;">REQUISICIONES RECIENTES</span>
+              <span style="font-size: 10px; color: var(--t8); font-weight: 600;">{{ statTotal }} total</span>
+            </div>
+            <div style="overflow-y: auto; flex: 1;">
+              <sc-for list="{{ filteredReqs }}" as="req">
+                <div style="padding: 10px 20px; border-bottom: 1px solid var(--divider); display: flex; align-items: center; gap: 14px;">
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 3px; flex-wrap: wrap;">
+                      <span style="font-size: 12px; font-weight: 800; color: var(--t1); letter-spacing: 0.04em;">{{ req.folio }}</span>
+                      <span style="{{ req.statusChipStyle }}">{{ req.statusLabel }}</span>
+                    </div>
+                    <span style="font-size: 11px; color: var(--t4); font-weight: 600;">{{ req.sucursal }} · {{ req.fecha }}</span>
+                  </div>
+                  <span style="font-size: 12px; color: {{ importeColor }}; font-weight: 800; flex-shrink: 0;">{{ req.importeStr }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Product breakdown -->
+        <div data-tour="dash-products" style="background: var(--surface); border: 1px solid var(--border); margin-bottom: 12px;">
+          <div style="padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+            <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--t6); text-transform: uppercase;">DESGLOSE DE PRODUCTOS ENVIADOS</span>
+            <span style="font-size: 9px; color: var(--t8); font-weight: 700; letter-spacing: 0.08em;">MAYOR IMPORTE ARRIBA</span>
+          </div>
+          <div style="max-height: 340px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--divider-2); position: sticky; top: 0; background: var(--surface);">
+                  <th style="text-align: left; padding: 8px 20px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Producto</th>
+                  <th style="text-align: right; padding: 8px 14px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Cantidad total</th>
+                  <th style="text-align: right; padding: 8px 14px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Req.</th>
+                  <th style="text-align: right; padding: 8px 20px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ productBreakdown }}" as="prod" hint-placeholder-count="6">
+                  <tr style="border-bottom: 1px solid var(--divider);">
+                    <td style="padding: 10px 20px; font-size: 13px; font-weight: 700; color: var(--t2);">{{ prod.producto }}</td>
+                    <td style="padding: 10px 14px; text-align: right; font-size: 13px; color: var(--t3); font-weight: 700;">{{ prod.cantidadStr }}</td>
+                    <td style="padding: 10px 14px; text-align: right; font-size: 12px; color: var(--t6); font-weight: 600;">{{ prod.reqCount }}</td>
+                    <td style="padding: 10px 20px; text-align: right; font-size: 13px; color: {{ importeColor }}; font-weight: 800;">{{ prod.importeStr }}</td>
+                  </tr>
+                </sc-for>
+                <sc-if value="{{ hasNoProducts }}" hint-placeholder-val="{{ false }}">
+                  <tr><td colspan="4" style="padding: 24px 20px; text-align: center; font-size: 12px; color: var(--t8);">Sin renglones de reparto capturados en el período filtrado.</td></tr>
+                </sc-if>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Top productos con más fricción -->
+        <sc-if value="{{ hasFrictionProducts }}" hint-placeholder-val="{{ false }}">
+          <div style="background: var(--surface); border: 1px solid var(--border);">
+            <div style="padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--t6); text-transform: uppercase;">TOP PRODUCTOS CON MÁS FRICCIÓN</span>
+              <span style="font-size: 9px; color: #E84926; font-weight: 700; letter-spacing: 0.08em;">DIFERENCIAS + AJUSTES</span>
+            </div>
+            <sc-for list="{{ frictionProducts }}" as="fp" hint-placeholder-count="5">
+              <div style="padding: 10px 20px; border-bottom: 1px solid var(--divider); display: flex; align-items: center; justify-content: space-between; gap: 14px;">
+                <span style="font-size: 13px; font-weight: 700; color: var(--t2);">{{ fp.producto }}</span>
+                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                  <div style="background: var(--divider-2); height: 4px; width: 90px;">
+                    <div style="{{ fp.barStyle }}"></div>
+                  </div>
+                  <span style="font-size: 13px; font-weight: 800; color: #E84926; min-width: 18px; text-align: right;">{{ fp.count }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ======= REQUISICIONES (carga Foodbot + captura de entrega + conciliación) ======= -->
+    <sc-if value="{{ isRequisiciones }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 28px 32px; max-width: 1440px; margin: 0 auto;">
+
+        <!-- Header -->
+        <div style="margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+          <div>
+            <p style="font-size: 10px; letter-spacing: 0.18em; color: var(--t5); margin-bottom: 4px; font-weight: 700; text-transform: uppercase;">PANEL OPERATIVO</p>
+            <h1 style="font-size: 24px; font-weight: 800; color: var(--t1); letter-spacing: -0.01em; line-height: 1.15;">Requisiciones</h1>
+          </div>
+          <div data-tour="req-search" style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 10px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Buscar folio</label>
+            <input type="text" value="{{ searchFolio }}" onChange="{{ setSearchFolio }}" placeholder="REQ-2025-024" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t2); padding: 8px 12px; font-size: 12px; width: 200px;">
+          </div>
+        </div>
+
+        <!-- Fase 1: Excel upload -->
+        <div data-tour="req-upload" style="background: var(--surface); border: 2px dashed var(--border-in); padding: 20px 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 220px;">
+            <p style="font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: var(--t5); text-transform: uppercase; margin-bottom: 5px;">FASE 1 · ARCHIVO FOODBOT</p>
+            <p style="font-size: 13px; color: var(--t7); line-height: 1.6;">Sube el Excel exportado de Foodbot y selecciona la sucursal a la que fue enviada la requisición. Se creará el registro pendiente de captura de entrega.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap;">
+            <sc-if value="{{ isFoodbotJustLoaded }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 8px; background: var(--chip-ok-bg); border: 1px solid var(--chip-ok-bd); padding: 8px 16px;">
+                <span style="color: var(--chip-ok-tx); font-weight: 700; font-size: 13px;">✓</span>
+                <span style="font-size: 12px; color: var(--chip-ok-tx); font-weight: 700; letter-spacing: 0.04em;">{{ lastUploadFolio }} creada · {{ lastUploadCount }} renglones</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isFoodbotLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px;">
+                <div style="width: 14px; height: 14px; border: 2px solid var(--border-in); border-top-color: #FFCD02; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0;"></div>
+                <span style="font-size: 12px; color: var(--t4);">Procesando Excel...</span>
+              </div>
+            </sc-if>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label style="font-size: 10px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Sucursal destino</label>
+              <select value="{{ uploadSucursal }}" onChange="{{ setUploadSucursal }}" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t2); padding: 8px 10px; font-size: 12px; cursor: pointer; min-width: 160px;">
+                <option value="">Selecciona…</option>
+                <sc-for list="{{ allSucursalesForReview }}" as="suc2" hint-placeholder-count="5">
+                  <option value="{{ suc2 }}">{{ suc2 }}</option>
+                </sc-for>
+              </select>
+            </div>
+            <label style="{{ uploadLabelStyle }}">
+              ↑ SUBIR EXCEL FOODBOT
+              <input type="file" accept=".xlsx,.xls,.csv" onChange="{{ handleExcelUpload }}" style="display: none;">
+            </label>
+          </div>
+        </div>
+        <sc-if value="{{ hasUploadError }}" hint-placeholder-val="{{ false }}">
+          <div style="background: var(--chip-warn-bg, #2a0f00); border: 1px solid #E84926; color: #E84926; padding: 10px 16px; margin: -14px 0 20px; font-size: 12px; font-weight: 600;">{{ uploadError }}</div>
+        </sc-if>
+
+        <!-- Fase 2: Requisitions accordion -->
+        <div data-tour="req-row" style="display: flex; flex-direction: column; gap: 6px;">
+          <sc-for list="{{ reqsForConciliation }}" as="req">
+            <div style="background: var(--surface); border: 1px solid var(--border); overflow: hidden;">
+
+              <!-- Accordion header (clickable) -->
+              <div onClick="{{ toggleExpandReq }}" data-req-id="{{ req.id }}" style="padding: 14px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; user-select: none;" style-hover="background: var(--hover);">
+                <div style="flex: 1; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-width: 0;">
+                  <span style="font-size: 13px; font-weight: 800; color: var(--t1); letter-spacing: 0.04em; white-space: nowrap;">{{ req.folio }}</span>
+                  <span style="font-size: 12px; color: var(--t4); font-weight: 600;">{{ req.sucursal }}</span>
+                  <span style="font-size: 11px; color: var(--t7);">{{ req.fecha }}</span>
+                  <span style="{{ req.concStatusStyle }}">{{ req.concStatusLabel }}</span>
+                  <span style="font-size: 10px; color: var(--t7); font-weight: 600;">{{ req.rengCount }} renglones</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px; flex-shrink: 0;">
+                  <sc-if value="{{ req.needsCaptura }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ onCapturarEntrega }}" data-req-id="{{ req.id }}" style="background: #FFCD02; color: #000; border: none; padding: 0 16px; height: 32px; font-weight: 900; font-size: 10px; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+                      <span style="font-size: 15px; font-weight: 300; line-height: 1;">+</span>CAPTURAR ENTREGA
+                    </button>
+                  </sc-if>
+                  <span style="font-size: 13px; color: {{ importeColor }}; font-weight: 800;">{{ req.importeStr }}</span>
+                  <span style="{{ req.arrowStyle }}">▶</span>
+                </div>
+              </div>
+
+              <!-- Expanded content -->
+              <sc-if value="{{ req.isExpanded }}" hint-placeholder-val="{{ false }}">
+
+                <sc-if value="{{ req.needsCaptura }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-top: 1px solid var(--border); padding: 22px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                    <p style="font-size: 12px; color: var(--t6); line-height: 1.6; max-width: 480px;">Aún no se captura la entrega de Reparto para esta requisición. {{ req.rengCount }} renglones esperados según Foodbot.</p>
+                    <button onClick="{{ onCapturarEntrega }}" data-req-id="{{ req.id }}" style="background: #FFCD02; color: #000; border: none; padding: 10px 18px; font-weight: 900; font-size: 11px; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; white-space: nowrap;">+ CAPTURAR ENTREGA</button>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ req.showTable }}" hint-placeholder-val="{{ true }}">
+                <div style="border-top: 1px solid var(--border); overflow-x: auto;">
+                  <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
+                    <thead>
+                      <tr style="background: var(--well); border-bottom: 1px solid var(--divider-2);">
+                        <th style="text-align: left; padding: 8px 20px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Producto</th>
+                        <th style="text-align: right; padding: 8px 12px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Cant. Reparto</th>
+                        <th style="text-align: right; padding: 8px 12px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Cant. Foodbot</th>
+                        <th style="text-align: left; padding: 8px 12px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Unidad</th>
+                        <th style="text-align: right; padding: 8px 12px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Costo</th>
+                        <th style="text-align: left; padding: 8px 12px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Origen</th>
+                        <th style="text-align: left; padding: 8px 20px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Estado / Ajuste</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <sc-for list="{{ req.renglones }}" as="rl">
+                        <tr style="{{ rl.rowStyle }}">
+                          <td style="padding: 10px 20px; font-size: 13px; color: var(--t2); font-weight: 600;">{{ rl.producto }}</td>
+                          <td style="padding: 10px 12px; text-align: right; font-size: 13px; color: var(--t3); font-weight: 700;">{{ rl.cantidad }}</td>
+                          <td style="padding: 10px 12px; text-align: right;">
+                            <span style="{{ rl.fbCantStyle }}">{{ rl.fbCantStr }}</span>
+                          </td>
+                          <td style="padding: 10px 12px; font-size: 11px; color: var(--t6);">{{ rl.unidad }}</td>
+                          <td style="padding: 10px 12px; text-align: right; font-size: 12px; color: var(--t6);">${{ rl.costo }}</td>
+                          <td style="padding: 10px 12px;">
+                            <span style="{{ rl.origenStyle }}">{{ rl.origenLabel }}</span>
+                          </td>
+                          <td style="padding: 10px 20px;">
+                            <sc-if value="{{ rl.showChip }}" hint-placeholder-val="{{ true }}">
+                              <span style="{{ rl.matchChipStyle }}">{{ rl.matchLabel }}</span>
+                            </sc-if>
+                            <sc-if value="{{ rl.showAdjForm }}" hint-placeholder-val="{{ false }}">
+                              <div style="display: flex; flex-direction: column; gap: 8px; min-width: 300px;">
+                                <span style="{{ rl.matchChipStyle }}">{{ rl.matchLabel }}</span>
+                                <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                                  <div style="display: flex; flex-direction: column; gap: 3px;">
+                                    <label style="font-size: 9px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Cant. corregida *</label>
+                                    <input type="number" value="{{ rl.adjCantidad }}" onChange="{{ onAdjustmentChange }}" data-row-id="{{ rl.id }}" data-field="cantidadNueva" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t1); padding: 6px 10px; font-size: 13px; width: 90px; font-weight: 700; text-align: right;">
+                                  </div>
+                                  <div style="display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 160px;">
+                                    <label style="font-size: 9px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">Motivo obligatorio *</label>
+                                    <input type="text" value="{{ rl.adjMotivo }}" onChange="{{ onAdjustmentChange }}" data-row-id="{{ rl.id }}" data-field="motivo" placeholder="Ej: error en Foodbot" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t1); padding: 6px 10px; font-size: 12px;">
+                                  </div>
+                                  <button onClick="{{ onSaveAdjustment }}" data-row-id="{{ rl.id }}" data-cant-anterior="{{ rl.cantidad }}" style="background: #E84926; color: #fff; border: none; padding: 8px 16px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; white-space: nowrap; height: 34px; align-self: flex-end;">GUARDAR AJUSTE</button>
+                                </div>
+                                <sc-if value="{{ rl.hasAdjError }}" hint-placeholder-val="{{ false }}">
+                                  <span style="font-size: 11px; color: #E84926; font-weight: 700;">{{ rl.adjError }}</span>
+                                </sc-if>
+                              </div>
+                            </sc-if>
+                            <sc-if value="{{ rl.showAdjSaved }}" hint-placeholder-val="{{ false }}">
+                              <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                  <span style="background: var(--chip-ok-bg); color: var(--chip-ok-tx); border: 1px solid var(--chip-ok-bd); padding: 2px 8px; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: inline-block;">✓ AJUSTE GUARDADO</span>
+                                  <button onClick="{{ onReopenAdjustment }}" data-row-id="{{ rl.id }}" style="background: none; border: none; color: var(--t6); font-size: 10px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 0;">+ Nueva corrección</button>
+                                </div>
+                                <span style="font-size: 10px; color: var(--t6); font-weight: 600;">Nueva cant.: {{ rl.adjCantSaved }} · {{ rl.adjSavedAt }}</span>
+                                <span style="font-size: 10px; color: var(--t7); font-style: italic; line-height: 1.4;">{{ rl.adjMotivo }}</span>
+                                <sc-if value="{{ rl.hasAdjHistorial }}" hint-placeholder-val="{{ false }}">
+                                  <div style="margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--border-in); display: flex; flex-direction: column; gap: 5px;">
+                                    <span style="font-size: 9px; color: var(--t8); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">Correcciones anteriores</span>
+                                    <sc-for list="{{ rl.adjHistorial }}" as="h" hint-placeholder-count="0">
+                                      <div style="font-size: 10px; color: var(--t8); line-height: 1.4;">
+                                        <span style="font-weight: 700;">{{ h.cantidadNueva }}</span> · {{ h.motivo }} · {{ h.savedAt }}
+                                      </div>
+                                    </sc-for>
+                                  </div>
+                                </sc-if>
+                              </div>
+                            </sc-if>
+                          </td>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+                </div>
+                </sc-if>
+
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ hasNoReqsForConciliation }}" hint-placeholder-val="{{ false }}">
+            <div style="background: var(--surface); border: 1px solid var(--border); padding: 40px 20px; text-align: center;">
+              <p style="font-size: 13px; color: var(--t6); font-weight: 600;">Ninguna requisición coincide con "{{ searchFolio }}".</p>
+            </div>
+          </sc-if>
+        </div>
+
+      </div>
+    </sc-if>
+
+    <!-- ======= COMPARATIVO (mes vs mes, misma sucursal) ======= -->
+    <sc-if value="{{ isComparativo }}" hint-placeholder-val="{{ false }}">
+      <div style="padding: 28px 32px; max-width: 1440px; margin: 0 auto;">
+
+        <div style="margin-bottom: 24px;">
+          <p style="font-size: 10px; letter-spacing: 0.18em; color: var(--t5); margin-bottom: 4px; font-weight: 700; text-transform: uppercase;">PANEL OPERATIVO</p>
+          <h1 style="font-size: 24px; font-weight: 800; color: var(--t1); letter-spacing: -0.01em; line-height: 1.15;">Comparativo mes vs mes</h1>
+          <p style="font-size: 12px; color: var(--t6); margin-top: 6px; line-height: 1.6;">Cada sucursal se compara únicamente contra sí misma en otro período — nunca contra otra sucursal.</p>
+        </div>
+
+        <!-- Month pickers -->
+        <div data-tour="comp-months" style="background: var(--surface); border: 1px solid var(--border); padding: 13px 20px; margin-bottom: 20px; display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 10px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Mes A</label>
+            <select value="{{ monthA }}" onChange="{{ setMonthA }}" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t2); padding: 5px 10px; font-size: 12px; cursor: pointer; min-width: 160px;">
+              <sc-for list="{{ availableMonths }}" as="m" hint-placeholder-count="3">
+                <option value="{{ m.value }}">{{ m.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+          <span style="font-size: 11px; color: var(--t7); font-weight: 700;">VS</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 10px; color: var(--t6); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Mes B</label>
+            <select value="{{ monthB }}" onChange="{{ setMonthB }}" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t2); padding: 5px 10px; font-size: 12px; cursor: pointer; min-width: 160px;">
+              <sc-for list="{{ availableMonths }}" as="m2" hint-placeholder-count="3">
+                <option value="{{ m2.value }}">{{ m2.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+        </div>
+
+        <!-- Per-branch comparison cards -->
+        <div data-tour="comp-card" style="display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{ comparativoRows }}" as="c" hint-placeholder-count="4">
+            <div style="background: var(--surface); border: 1px solid var(--border); overflow: hidden;">
+            <div onClick="{{ toggleComparativoExpand }}" data-sucursal="{{ c.sucursal }}" style="padding: 18px 22px; display: grid; grid-template-columns: 160px 1fr 1fr 140px; gap: 20px; align-items: center; cursor: pointer; user-select: none;" style-hover="background: var(--hover);">
+              <div style="font-size: 15px; font-weight: 800; color: var(--t1); display: flex; align-items: center;">{{ c.sucursal }}<span style="{{ c.arrowStyle }}">▶</span></div>
+
+              <div style="display: flex; gap: 24px; align-items: center;">
+                <div>
+                  <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">{{ c.labelA }}</p>
+                  <p style="font-size: 20px; font-weight: 900; color: var(--t1); line-height: 1;">{{ c.reqA }} <span style="font-size: 10px; color: var(--t6); font-weight: 700;">req.</span></p>
+                </div>
+                <div>
+                  <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">Importe</p>
+                  <p style="font-size: 15px; font-weight: 800; color: {{ importeColor }};">{{ c.importeAStr }}</p>
+                </div>
+                <div>
+                  <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">Fricción</p>
+                  <p style="font-size: 15px; font-weight: 800; color: var(--t3);">{{ c.friccionAStr }}</p>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 24px; align-items: center;">
+                <div>
+                  <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">{{ c.labelB }}</p>
+                  <p style="font-size: 20px; font-weight: 900; color: var(--t1); line-height: 1;">{{ c.reqB }} <span style="font-size: 10px; color: var(--t6); font-weight: 700;">req.</span></p>
+                </div>
+                <div>
+                  <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">Importe</p>
+                  <p style="font-size: 15px; font-weight: 800; color: {{ importeColor }};">{{ c.importeBStr }}</p>
+                </div>
+                <div>
+                  <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">Fricción</p>
+                  <p style="font-size: 15px; font-weight: 800; color: var(--t3);">{{ c.friccionBStr }}</p>
+                </div>
+              </div>
+
+              <div style="text-align: right;">
+                <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px;">Δ Importe</p>
+                <p style="{{ c.deltaStyle }}">{{ c.deltaStr }}</p>
+              </div>
+            </div>
+
+            <sc-if value="{{ c.isExpanded }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top: 1px solid var(--border); padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                <div>
+                  <p style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: var(--t6); text-transform: uppercase; margin-bottom: 10px;">Diferencias — {{ c.labelA }}</p>
+                  <sc-for list="{{ c.diffLinesA }}" as="dl" hint-placeholder-count="0">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--divider);">
+                      <div style="min-width: 0;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--t2);">{{ dl.producto }}</div>
+                        <div style="font-size: 10px; color: var(--t7);">{{ dl.folio }} · {{ dl.fecha }} · Reparto {{ dl.cantReparto }} / Foodbot {{ dl.cantFoodbot }}</div>
+                      </div>
+                      <span style="{{ dl.matchChipStyle }}">{{ dl.matchLabel }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div>
+                  <p style="font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: var(--t6); text-transform: uppercase; margin-bottom: 10px;">Diferencias — {{ c.labelB }}</p>
+                  <sc-for list="{{ c.diffLinesB }}" as="dl2" hint-placeholder-count="0">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--divider);">
+                      <div style="min-width: 0;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--t2);">{{ dl2.producto }}</div>
+                        <div style="font-size: 10px; color: var(--t7);">{{ dl2.folio }} · {{ dl2.fecha }} · Reparto {{ dl2.cantReparto }} / Foodbot {{ dl2.cantFoodbot }}</div>
+                      </div>
+                      <span style="{{ dl2.matchChipStyle }}">{{ dl2.matchLabel }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ c.hasNoDiffs }}" hint-placeholder-val="{{ false }}">
+                  <p style="font-size: 12px; color: var(--t6); grid-column: 1 / -1;">Sin diferencias en ninguno de los dos períodos — match perfecto contra Foodbot.</p>
+                </sc-if>
+              </div>
+            </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ hasNoComparativoRows }}" hint-placeholder-val="{{ false }}">
+            <div style="background: var(--surface); border: 1px dashed var(--border-in); padding: 40px; text-align: center;">
+              <p style="font-size: 13px; color: var(--t6);">No hay requisiciones registradas en los meses seleccionados.</p>
+            </div>
+          </sc-if>
+        </div>
+
+      </div>
+    </sc-if>
+
+  </main>
+
+  <!-- ===== QR OVERLAY (siempre oscura — puente físico-digital) ===== -->
+  <sc-if value="{{ isQR }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px;">
+      <div style="background: #0a0a0a; border: 2px solid #FFCD02; width: 100%; max-width: 600px; animation: fadeUp 0.22s ease-out;">
+
+        <!-- Yellow header -->
+        <div style="background: #FFCD02; padding: 14px 22px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <p style="font-size: 9px; font-weight: 700; letter-spacing: 0.18em; color: #000; text-transform: uppercase; margin-bottom: 2px;">CAPTURA DE ENTREGA · {{ captureTargetLabel }}</p>
+            <p style="font-size: 15px; font-weight: 900; color: #000; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.1;">Escanea con tu celular</p>
+          </div>
+          <button onClick="{{ closeCapture }}" style="background: rgba(0,0,0,0.12); border: none; color: #000; width: 32px; height: 32px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">×</button>
+        </div>
+
+        <!-- Modal body -->
+        <div style="padding: 28px; display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap;">
+
+          <!-- QR code -->
+          <div style="flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <div style="background: #fff; padding: 16px; display: inline-flex;">
+              <div id="qr-code-container" style="width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; background: #fff;">
+                <div style="width: 36px; height: 36px; border: 3px solid #eee; border-top-color: #000; border-radius: 50%; animation: spin 0.7s linear infinite;"></div>
+              </div>
+            </div>
+            <p style="font-size: 9px; color: #9a9aa0; text-align: center; max-width: 220px; line-height: 1.7; word-break: break-all; font-family: 'Courier New', monospace;">{{ sessionUrl }}</p>
+          </div>
+
+          <!-- Status + instructions -->
+          <div style="flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- Status -->
+            <div style="{{ qrStatusAreaStyle }}">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="{{ qrDotStyle }}"></div>
+                <span style="{{ qrStatusTextStyle }}">{{ qrStatusText }}</span>
+              </div>
+            </div>
+
+            <!-- Countdown -->
+            <sc-if value="{{ isQRWaiting }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <p style="font-size: 9px; color: #9a9aa0; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px;">SESIÓN EXPIRA EN</p>
+                <p style="font-size: 32px; font-weight: 900; color: #fff; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; line-height: 1;">{{ countdownStr }}</p>
+              </div>
+            </sc-if>
+
+            <!-- Instructions -->
+            <div>
+              <p style="font-size: 9px; color: #9a9aa0; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">INSTRUCCIONES</p>
+              <ol style="font-size: 12px; color: #aeaeb3; line-height: 2; padding-left: 18px;">
+                <li>Abre la cámara del celular</li>
+                <li>Enfoca el código QR</li>
+                <li>Sube la(s) foto(s) de la hoja</li>
+                <li>Esta pantalla avanza automáticamente</li>
+              </ol>
+            </div>
+
+            <!-- Demo button -->
+            <sc-if value="{{ isQRWaiting }}" hint-placeholder-val="{{ true }}">
+              <div style="border-top: 1px solid #1a1a1a; padding-top: 16px;">
+                <p style="font-size: 9px; color: #8a8a90; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 7px;">MODO DEMO</p>
+                <button onClick="{{ simulatePhotos }}" style="background: transparent; border: 1px solid #333; color: #aeaeb3; padding: 9px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; width: 100%;" style-hover="border-color: #FFCD02; color: #FFCD02;">Simular fotos recibidas →</button>
+              </div>
+            </sc-if>
+
+            <!-- Proceed button -->
+            <sc-if value="{{ isQRReady }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ proceedToReview }}" style="background: #FFCD02; color: #000; border: none; padding: 14px 20px; font-size: 13px; font-weight: 900; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase; width: 100%; animation: fadeUp 0.3s ease-out;">REVISAR DATOS EXTRAÍDOS →</button>
+            </sc-if>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== REVIEW OVERLAY ===== -->
+  <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; background: var(--canvas); z-index: 200; overflow-y: auto;">
+      <div style="padding: 28px 32px; max-width: 1200px; margin: 0 auto;">
+
+        <!-- Review header -->
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <p style="font-size: 10px; letter-spacing: 0.18em; color: var(--t5); margin-bottom: 4px; font-weight: 700; text-transform: uppercase;">FASE 2 — REVISIÓN Y CONFIRMACIÓN</p>
+            <h2 style="font-size: 22px; font-weight: 800; color: var(--t1); letter-spacing: -0.01em; line-height: 1.2;">Confirmar entrega — {{ captureTargetLabel }}</h2>
+            <p style="font-size: 12px; color: var(--t7); margin-top: 6px; line-height: 1.6;">Revisa y corrige antes de guardar. Confianza baja = verificar contra la hoja física. Campos * obligatorios.</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
+            <button onClick="{{ closeCapture }}" style="background: transparent; border: 1px solid var(--border-in); color: var(--t4); padding: 10px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase;" style-hover="border-color: #E84926; color: #E84926;">CANCELAR</button>
+            <button onClick="{{ saveCaptura }}" style="background: #FFCD02; color: #000; border: none; padding: 10px 24px; font-size: 12px; font-weight: 900; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase;">GUARDAR ENTREGA</button>
+          </div>
+        </div>
+
+        <!-- Context strip -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-top: 2px solid #FFCD02; padding: 18px 22px; margin-bottom: 20px; display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
+          <div style="display: flex; flex-direction: column; gap: 5px; min-width: 140px;">
+            <p style="font-size: 9px; color: var(--t5); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Folio</p>
+            <p style="font-size: 16px; font-weight: 800; color: var(--t1); letter-spacing: 0.02em;">{{ captureTargetFolio }}</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; min-width: 140px;">
+            <p style="font-size: 9px; color: var(--t5); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Sucursal</p>
+            <p style="font-size: 16px; font-weight: 800; color: var(--t1);">{{ captureTargetSucursal }}</p>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; min-width: 160px;">
+            <label style="font-size: 9px; color: var(--t5); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Fecha de entrega *</label>
+            <input type="date" value="{{ reviewFecha }}" onChange="{{ setReviewFecha }}" style="background: var(--well); border: 1px solid var(--border-in); color: var(--t1); padding: 10px 14px; font-size: 14px; font-weight: 700;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 5px; min-width: 130px; align-self: flex-end;">
+            <p style="font-size: 9px; color: var(--t6); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;">Importe total</p>
+            <p style="font-size: 24px; font-weight: 900; color: {{ importeColor }}; line-height: 1; letter-spacing: -0.01em;">{{ reviewTotal }}</p>
+          </div>
+        </div>
+
+        <!-- Editable table -->
+        <div style="background: var(--surface); border: 1px solid var(--border); margin-bottom: 16px; overflow-x: auto;">
+          <div style="padding: 11px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+            <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--t6); text-transform: uppercase;">RENGLONES — {{ reviewRowCount }} PRODUCTOS EXTRAÍDOS</span>
+            <span style="font-size: 10px; color: var(--t8); font-style: italic;">Celdas editables — confianza baja requiere verificación manual</span>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; min-width: 820px;">
+            <thead>
+              <tr style="background: var(--well); border-bottom: 1px solid var(--divider-2);">
+                <th style="text-align: center; padding: 9px 14px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase; width: 36px;">#</th>
+                <th style="text-align: left; padding: 9px 10px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Producto</th>
+                <th style="text-align: right; padding: 9px 10px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Cantidad</th>
+                <th style="text-align: left; padding: 9px 10px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Unidad</th>
+                <th style="text-align: right; padding: 9px 10px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Costo</th>
+                <th style="text-align: left; padding: 9px 10px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Origen</th>
+                <th style="text-align: center; padding: 9px 14px; font-size: 9px; font-weight: 700; color: var(--t8); letter-spacing: 0.12em; text-transform: uppercase;">Confianza</th>
+                <th style="width: 36px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ reviewRows }}" as="row">
+                <tr style="{{ row.rowStyle }}">
+                  <td style="padding: 7px 14px; font-size: 10px; color: var(--t9); font-weight: 700; text-align: center; font-variant-numeric: tabular-nums;">{{ row.rowNum }}</td>
+                  <td style="padding: 5px 10px;">
+                    <input type="text" value="{{ row.producto }}" onChange="{{ onReviewCellChange }}" data-row-id="{{ row.id }}" data-field="producto" style="background: var(--well); border: 1px solid var(--border); color: var(--t1); padding: 6px 10px; font-size: 13px; width: 200px; font-weight: 600;">
+                  </td>
+                  <td style="padding: 5px 10px;">
+                    <input type="number" value="{{ row.cantidad }}" onChange="{{ onReviewCellChange }}" data-row-id="{{ row.id }}" data-field="cantidad" style="background: var(--well); border: 1px solid var(--border); color: var(--t1); padding: 6px 10px; font-size: 13px; width: 75px; font-weight: 700; text-align: right;">
+                  </td>
+                  <td style="padding: 5px 10px;">
+                    <select value="{{ row.unidad }}" onChange="{{ onReviewCellChange }}" data-row-id="{{ row.id }}" data-field="unidad" style="background: var(--well); border: 1px solid var(--border); color: var(--t2); padding: 6px 8px; font-size: 12px; cursor: pointer;">
+                      <option value="pz">pz</option>
+                      <option value="kg">kg</option>
+                      <option value="lt">lt</option>
+                      <option value="mz">mz</option>
+                      <option value="pq">pq</option>
+                      <option value="cja">cja</option>
+                      <option value="gr">gr</option>
+                    </select>
+                  </td>
+                  <td style="padding: 5px 10px;">
+                    <input type="number" value="{{ row.costo }}" onChange="{{ onReviewCellChange }}" data-row-id="{{ row.id }}" data-field="costo" style="background: var(--well); border: 1px solid var(--border); color: var(--t1); padding: 6px 10px; font-size: 13px; width: 88px; font-weight: 700; text-align: right;">
+                  </td>
+                  <td style="padding: 5px 10px;">
+                    <select value="{{ row.origen }}" onChange="{{ onReviewCellChange }}" data-row-id="{{ row.id }}" data-field="origen" style="{{ row.origenSelectStyle }}">
+                      <option value="almacen">ALMACÉN</option>
+                      <option value="cocina">COCINA</option>
+                    </select>
+                  </td>
+                  <td style="padding: 7px 14px; text-align: center;">
+                    <span style="{{ row.confStyle }}">{{ row.confStr }}</span>
+                  </td>
+                  <td style="padding: 7px 10px; text-align: center;">
+                    <button onClick="{{ deleteReviewRow }}" data-row-id="{{ row.id }}" style="background: transparent; border: 1px solid var(--border); color: var(--t8); width: 26px; height: 26px; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;" style-hover="border-color: #E84926; color: #E84926;">×</button>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <div style="padding: 11px 20px; border-top: 1px solid var(--divider-2);">
+            <button onClick="{{ addReviewRow }}" style="background: transparent; border: 1px dashed var(--border-in); color: var(--t7); padding: 7px 14px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase;" style-hover="border-color: #FFCD02; color: #FFCD02;">+ AGREGAR RENGLÓN</button>
+          </div>
+        </div>
+
+        <!-- Bottom actions -->
+        <sc-if value="{{ hasSaveError }}" hint-placeholder-val="{{ false }}">
+          <div style="background: #2a0f00; border: 1px solid #E84926; color: #E84926; padding: 12px 18px; margin-bottom: 14px; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span>{{ saveError }}</span>
+            <span style="font-size: 10px; color: #ff8a6a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;">Reintenta con "GUARDAR ENTREGA"</span>
+          </div>
+        </sc-if>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button onClick="{{ closeCapture }}" style="background: transparent; border: 1px solid var(--border-in); color: var(--t4); padding: 12px 22px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase;" style-hover="border-color: #E84926; color: #E84926;">CANCELAR</button>
+          <button onClick="{{ saveCaptura }}" style="background: #FFCD02; color: #000; border: none; padding: 12px 28px; font-size: 13px; font-weight: 900; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase;">GUARDAR ENTREGA →</button>
+        </div>
+
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== GUÍA / TOUR (spotlight paso a paso) ===== -->
+  <sc-if value="{{ tourActive }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ tourHighlightStyle }}"></div>
+    <div style="{{ tourCardStyle }}">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.14em; color: #FFCD02; text-transform: uppercase;">PASO {{ tourStepNum }} / {{ tourStepTotal }}</span>
+        <button onClick="{{ closeTour }}" style="background: none; border: none; color: #8a8a90; font-size: 16px; cursor: pointer; line-height: 1; padding: 0;">✕</button>
+      </div>
+      <h3 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: -0.01em;">{{ tourStepTitle }}</h3>
+      <p style="font-size: 13px; color: #c8c8ce; line-height: 1.55; margin-bottom: 18px;">{{ tourStepText }}</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <button onClick="{{ prevTourStep }}" style="{{ tourPrevBtnStyle }}">← ANTERIOR</button>
+        <button onClick="{{ nextTourStep }}" style="{{ tourNextBtnStyle }}">{{ tourNextLabel }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Botón flotante: iniciar guía -->
+  <sc-if value="{{ tourFabVisible }}" hint-placeholder-val="{{ true }}">
+    <button onClick="{{ startTour }}" title="Guía de la plataforma" style="{{ tourFabStyle }}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18h6"></path>
+        <path d="M10 22h4"></path>
+        <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1v.2h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2Z"></path>
+      </svg>
+    </button>
+  </sc-if>
+
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  _countdownTimer = null;
+
+  state = {
+    view: 'dashboard',
+    theme: 'dark',
+    filterDateFrom: '',
+    filterDateTo: '',
+    filterSucursal: 'all',
+    filterStatus: 'all', // all | conciliada | con_ajuste_diferencias | pendiente_captura
+    monthA: '2025-06',
+    monthB: '2025-05',
+    expandedComparativoSucursal: null,
+    uploadSucursal: '',
+    foodbotUploadStatus: 'idle', // idle | loading | loaded
+    lastUploadFolio: '', lastUploadCount: 0,
+    captureReqId: null,
+    captureSessionId: null,
+    captureStatus: 'idle',
+    captureCountdown: 900,
+    reviewRows: [],
+    reviewFecha: new Date().toISOString().split('T')[0],
+    requisiciones: [
+      // Ya conciliada, sin diferencias
+      { id: 'req-001', folio: 'REQ-2025-024', sucursal: 'Polanco', fecha: '2025-06-28',
+        renglonesFoodbot: [
+          { producto: 'Aceite de ajonjolí', cantidad: 5, costo: 180 },
+          { producto: 'Salsa hoisin', cantidad: 10, costo: 45 },
+          { producto: 'Pollo marinado', cantidad: 10, costo: 95 },
+          { producto: 'Jengibre fresco', cantidad: 3, costo: 68 },
+        ],
+        renglonesReparto: [
+          { id: 'rp-001', producto: 'Aceite de ajonjolí', cantidad: 5, unidad: 'lt', costo: 180, origen: 'almacen', confianza_ocr: 0.97 },
+          { id: 'rp-002', producto: 'Salsa hoisin', cantidad: 12, unidad: 'pz', costo: 45, origen: 'almacen', confianza_ocr: 0.91 },
+          { id: 'rp-003', producto: 'Pollo marinado', cantidad: 10, unidad: 'kg', costo: 95, origen: 'cocina', confianza_ocr: 0.88 },
+          { id: 'rp-004', producto: 'Jengibre fresco', cantidad: 3, unidad: 'kg', costo: 68, origen: 'cocina', confianza_ocr: 0.94 },
+        ]},
+      // Diferencia ya resuelta con ajuste guardado (rp-007)
+      { id: 'req-002', folio: 'REQ-2025-023', sucursal: 'Condesa', fecha: '2025-06-27',
+        renglonesFoodbot: [
+          { producto: 'Salsa de soya', cantidad: 8, costo: 95 },
+          { producto: 'Bok choy', cantidad: 15, costo: 28 },
+          { producto: 'Cebollín', cantidad: 4, costo: 22 },
+        ],
+        renglonesReparto: [
+          { id: 'rp-005', producto: 'Salsa de soya', cantidad: 8, unidad: 'lt', costo: 95, origen: 'almacen', confianza_ocr: 0.99 },
+          { id: 'rp-006', producto: 'Bok choy', cantidad: 15, unidad: 'kg', costo: 28, origen: 'cocina', confianza_ocr: 0.85 },
+          { id: 'rp-007', producto: 'Cebollín', cantidad: 6, unidad: 'mz', costo: 22, origen: 'cocina', confianza_ocr: 0.79 },
+        ]},
+      // Conciliada perfecta
+      { id: 'req-003', folio: 'REQ-2025-022', sucursal: 'Roma Norte', fecha: '2025-06-27',
+        renglonesFoodbot: [
+          { producto: 'Fideos de arroz', cantidad: 20, costo: 35 },
+          { producto: 'Salsa teriyaki', cantidad: 8, costo: 55 },
+          { producto: 'Ajo molido', cantidad: 4, costo: 48 },
+        ],
+        renglonesReparto: [
+          { id: 'rp-008', producto: 'Fideos de arroz', cantidad: 20, unidad: 'pq', costo: 35, origen: 'almacen', confianza_ocr: 0.98 },
+          { id: 'rp-009', producto: 'Salsa teriyaki', cantidad: 8, unidad: 'pz', costo: 55, origen: 'almacen', confianza_ocr: 0.96 },
+          { id: 'rp-010', producto: 'Ajo molido', cantidad: 4, unidad: 'kg', costo: 48, origen: 'cocina', confianza_ocr: 0.93 },
+        ]},
+      // Conciliada perfecta
+      { id: 'req-004', folio: 'REQ-2025-021', sucursal: 'Satélite', fecha: '2025-06-26',
+        renglonesFoodbot: [
+          { producto: 'Aceite vegetal', cantidad: 10, costo: 65 },
+          { producto: 'Camarones L30', cantidad: 5, costo: 220 },
+        ],
+        renglonesReparto: [
+          { id: 'rp-011', producto: 'Aceite vegetal', cantidad: 10, unidad: 'lt', costo: 65, origen: 'almacen', confianza_ocr: 0.97 },
+          { id: 'rp-012', producto: 'Camarones L30', cantidad: 5, unidad: 'kg', costo: 220, origen: 'cocina', confianza_ocr: 0.91 },
+        ]},
+      // Diferencia ya resuelta con ajuste guardado (rp-013)
+      { id: 'req-005', folio: 'REQ-2025-020', sucursal: 'Polanco', fecha: '2025-06-25',
+        renglonesFoodbot: [
+          { producto: 'Tofu firme', cantidad: 10, costo: 38 },
+          { producto: 'Salsa de ostión', cantidad: 6, costo: 72 },
+          { producto: 'Vinagre de arroz', cantidad: 3, costo: 85 },
+        ],
+        renglonesReparto: [
+          { id: 'rp-013', producto: 'Tofu firme', cantidad: 12, unidad: 'pz', costo: 38, origen: 'cocina', confianza_ocr: 0.92 },
+          { id: 'rp-014', producto: 'Salsa de ostión', cantidad: 6, unidad: 'pz', costo: 72, origen: 'almacen', confianza_ocr: 0.96 },
+          { id: 'rp-015', producto: 'Vinagre de arroz', cantidad: 3, unidad: 'lt', costo: 85, origen: 'almacen', confianza_ocr: 0.88 },
+        ]},
+      // Pendiente de captura de entrega — demuestra el botón "Capturar entrega"
+      { id: 'req-006', folio: 'REQ-2025-019', sucursal: 'Pedregal', fecha: '2025-06-25',
+        renglonesFoodbot: [
+          { producto: 'Salsa sriracha', cantidad: 8, costo: 62 },
+          { producto: 'Pollo marinado', cantidad: 8, costo: 95 },
+        ],
+        renglonesReparto: []},
+      // Conciliada perfecta
+      { id: 'req-007', folio: 'REQ-2025-018', sucursal: 'Condesa', fecha: '2025-06-24',
+        renglonesFoodbot: [
+          { producto: 'Champiñones shiitake', cantidad: 5, costo: 145 },
+          { producto: 'Salsa de soya', cantidad: 6, costo: 95 },
+        ],
+        renglonesReparto: [
+          { id: 'rp-018', producto: 'Champiñones shiitake', cantidad: 5, unidad: 'kg', costo: 145, origen: 'cocina', confianza_ocr: 0.94 },
+          { id: 'rp-019', producto: 'Salsa de soya', cantidad: 6, unidad: 'lt', costo: 95, origen: 'almacen', confianza_ocr: 0.99 },
+        ]},
+      // Conciliada perfecta
+      { id: 'req-008', folio: 'REQ-2025-017', sucursal: 'Roma Norte', fecha: '2025-06-23',
+        renglonesFoodbot: [
+          { producto: 'Aceite de ajonjolí', cantidad: 4, costo: 180 },
+          { producto: 'Zanahoria rallada', cantidad: 8, costo: 18 },
+        ],
+        renglonesReparto: [
+          { id: 'rp-020', producto: 'Aceite de ajonjolí', cantidad: 4, unidad: 'lt', costo: 180, origen: 'almacen', confianza_ocr: 0.97 },
+          { id: 'rp-021', producto: 'Zanahoria rallada', cantidad: 8, unidad: 'kg', costo: 18, origen: 'cocina', confianza_ocr: 0.82 },
+        ]},
+      // Mes anterior (mayo) — para el comparativo mes vs mes por sucursal
+      { id: 'req-101', folio: 'REQ-2025-011', sucursal: 'Polanco', fecha: '2025-05-29',
+        renglonesFoodbot: [ { producto: 'Aceite de ajonjolí', cantidad: 6, costo: 175 }, { producto: 'Salsa hoisin', cantidad: 10, costo: 44 } ],
+        renglonesReparto: [
+          { id: 'rp-101', producto: 'Aceite de ajonjolí', cantidad: 6, unidad: 'lt', costo: 175, origen: 'almacen', confianza_ocr: 0.96 },
+          { id: 'rp-102', producto: 'Salsa hoisin', cantidad: 10, unidad: 'pz', costo: 44, origen: 'almacen', confianza_ocr: 0.95 },
+        ]},
+      { id: 'req-102', folio: 'REQ-2025-010', sucursal: 'Polanco', fecha: '2025-05-20',
+        renglonesFoodbot: [ { producto: 'Tofu firme', cantidad: 10, costo: 37 }, { producto: 'Vinagre de arroz', cantidad: 3, costo: 84 } ],
+        renglonesReparto: [
+          { id: 'rp-103', producto: 'Tofu firme', cantidad: 10, unidad: 'pz', costo: 37, origen: 'cocina', confianza_ocr: 0.93 },
+          { id: 'rp-104', producto: 'Vinagre de arroz', cantidad: 3, unidad: 'lt', costo: 84, origen: 'almacen', confianza_ocr: 0.9 },
+        ]},
+      { id: 'req-103', folio: 'REQ-2025-009', sucursal: 'Condesa', fecha: '2025-05-27',
+        renglonesFoodbot: [ { producto: 'Salsa de soya', cantidad: 8, costo: 93 }, { producto: 'Bok choy', cantidad: 12, costo: 27 } ],
+        renglonesReparto: [
+          { id: 'rp-105', producto: 'Salsa de soya', cantidad: 8, unidad: 'lt', costo: 93, origen: 'almacen', confianza_ocr: 0.98 },
+          { id: 'rp-106', producto: 'Bok choy', cantidad: 12, unidad: 'kg', costo: 27, origen: 'cocina', confianza_ocr: 0.87 },
+        ]},
+      { id: 'req-104', folio: 'REQ-2025-008', sucursal: 'Roma Norte', fecha: '2025-05-25',
+        renglonesFoodbot: [ { producto: 'Fideos de arroz', cantidad: 18, costo: 34 }, { producto: 'Ajo molido', cantidad: 4, costo: 47 } ],
+        renglonesReparto: [
+          { id: 'rp-107', producto: 'Fideos de arroz', cantidad: 18, unidad: 'pq', costo: 34, origen: 'almacen', confianza_ocr: 0.97 },
+          { id: 'rp-108', producto: 'Ajo molido', cantidad: 5, unidad: 'kg', costo: 47, origen: 'cocina', confianza_ocr: 0.86 },
+        ]},
+      { id: 'req-105', folio: 'REQ-2025-007', sucursal: 'Satélite', fecha: '2025-05-18',
+        renglonesFoodbot: [ { producto: 'Aceite vegetal', cantidad: 8, costo: 64 } ],
+        renglonesReparto: [
+          { id: 'rp-109', producto: 'Aceite vegetal', cantidad: 8, unidad: 'lt', costo: 64, origen: 'almacen', confianza_ocr: 0.97 },
+        ]},
+    ],
+    expandedReqId: null,
+    editingAdjRow: null,
+    searchFolio: '',
+    tourActive: false,
+    tourStep: 0,
+    tourRect: null,
+    isAuthenticated: false,
+    authEmail: '',
+    authPassword: '',
+    authError: '',
+    isAuthLoading: false,
+    uploadError: '',
+    saveError: '',
+    adjustmentErrors: {},
+    adjustments: {
+      'rp-007': { cantidadNueva: '4', motivo: 'Diferencia confirmada por teléfono con la sucursal.', guardado: true, savedAt: '14:32' },
+      'rp-013': { cantidadNueva: '10', motivo: 'Reparto entregó 2 piezas de más; se ajusta a lo autorizado.', guardado: true, savedAt: '09:15' },
+    },
+  };
+
+  componentDidMount() {
+    // Restaurar preferencia de tema
+    try {
+      const saved = localStorage.getItem('ca-theme');
+      if (saved === 'light' || saved === 'dark') this.setState({ theme: saved });
+    } catch (e) {}
+    // SUPABASE: al montar, restaurar sesión con supabase.auth.getSession() /
+    // supabase.auth.onAuthStateChange() en vez de este flag de demo en localStorage.
+    let restoredSession = false;
+    try {
+      const savedAuth = localStorage.getItem('ca-auth-email');
+      if (savedAuth) { this.setState({ isAuthenticated: true, authEmail: savedAuth }); restoredSession = true; }
+    } catch (e) {}
+    // Suppress DC-runtime empty-object console.error (non-fatal internal signal)
+    this._origCE = console.error;
+    const orig = this._origCE;
+    console.error = (...a) => {
+      if (a.length === 1 && a[0] !== null && typeof a[0] === 'object'
+          && !Array.isArray(a[0]) && Object.keys(a[0]).length === 0) return;
+      orig.apply(console, a);
+    };
+    this._onTourResize = () => { if (this.state.tourActive) this._measureTourTarget(); };
+    window.addEventListener('resize', this._onTourResize);
+    // Guía: primera vez que hay sesión activa → auto-inicia el recorrido una sola vez
+    if (restoredSession) this._maybeAutoStartTour();
+  }
+
+  _maybeAutoStartTour() {
+    try {
+      const tourSeen = localStorage.getItem('ca-tour-seen');
+      if (!tourSeen) {
+        localStorage.setItem('ca-tour-seen', '1');
+        setTimeout(() => this.startTour(), 700);
+      }
+    } catch (e) {}
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.captureSessionId && !prevState.captureSessionId) {
+      this._generateQR();
+      this._startCountdown();
+    }
+    if (!this.state.captureSessionId && prevState.captureSessionId) {
+      this._stopTimers();
+    }
+    if (this.state.tourActive && (this.state.tourStep !== prevState.tourStep || this.state.tourActive !== prevState.tourActive)) {
+      this._measureTourTarget();
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._origCE) { console.error = this._origCE; this._origCE = null; }
+    this._stopTimers();
+    if (this._onTourResize) window.removeEventListener('resize', this._onTourResize);
+  }
+
+  _tourSteps() {
+    return [
+      { view: 'dashboard', target: 'dash-stats', title: 'Estatus de un vistazo', text: 'Estas tarjetas resumen el período filtrado. Haz click en una para filtrar la lista y las tablas por ese estatus — click de nuevo para quitar el filtro.' },
+      { view: 'dashboard', target: 'dash-trend', title: 'Tendencia de fricción', text: 'El % de requisiciones con ajuste o diferencia, mes a mes. Sirve para detectar si la fricción operativa sube o baja con el tiempo.' },
+      { view: 'dashboard', target: 'dash-products', title: 'Desglose de productos', text: 'Cantidad total, número de requisiciones e importe por producto entregado en el período — útil para detectar consumo inusual.' },
+      { view: 'requisiciones', target: 'req-search', title: 'Busca por folio', text: 'Encuentra una requisición específica sin desplazarte por toda la lista.' },
+      { view: 'requisiciones', target: 'req-upload', title: 'Fase 1 — Sube el Excel de Foodbot', text: 'Sube el archivo exportado por Foodbot y elige la sucursal destino. Se crea la requisición pendiente de captura de entrega.' },
+      { view: 'requisiciones', target: 'req-row', title: 'Fase 2 — Conciliación', text: 'Expande una requisición para comparar lo entregado contra lo pedido, capturar la entrega vía QR y documentar ajustes cuando haya diferencias.' },
+      { view: 'comparativo', target: 'comp-months', title: 'Compara dos meses', text: 'Elige dos períodos para comparar cada sucursal contra sí misma en el tiempo — nunca contra otra sucursal.' },
+      { view: 'comparativo', target: 'comp-card', title: 'Detalle expandible', text: 'Haz click en una sucursal para ver qué renglones causaron la diferencia en cada uno de los dos meses comparados.' },
+    ];
+  }
+
+  startTour() {
+    const steps = this._tourSteps();
+    this.setState({ tourActive: true, tourStep: 0, view: steps[0].view, tourRect: null });
+    this._measureTourTarget();
+  }
+
+  closeTour() {
+    this.setState({ tourActive: false, tourRect: null });
+  }
+
+  nextTourStep() {
+    const steps = this._tourSteps();
+    const next = this.state.tourStep + 1;
+    if (next >= steps.length) { this.closeTour(); return; }
+    this.setState({ tourStep: next, view: steps[next].view, tourRect: null });
+    this._measureTourTarget(next);
+  }
+
+  prevTourStep() {
+    const prev = this.state.tourStep - 1;
+    if (prev < 0) return;
+    const steps = this._tourSteps();
+    this.setState({ tourStep: prev, view: steps[prev].view, tourRect: null });
+    this._measureTourTarget(prev);
+  }
+
+  _measureTourTarget(stepIndexOverride) {
+    const steps = this._tourSteps();
+    const stepIndex = typeof stepIndexOverride === 'number' ? stepIndexOverride : this.state.tourStep;
+    const step = steps[stepIndex];
+    if (!step) return;
+    setTimeout(() => {
+      const el = document.querySelector('[data-tour="' + step.target + '"]');
+      if (el) {
+        const r = el.getBoundingClientRect();
+        this.setState({ tourRect: { top: r.top, left: r.left, width: r.width, height: r.height } });
+      } else {
+        this.setState({ tourRect: null });
+      }
+    }, 120);
+  }
+
+  _generateQR() {
+    const url = (typeof window !== 'undefined' ? window.location.origin : 'https://almacen.rocknwok.mx')
+      + '/captura-movil/' + this.state.captureSessionId;
+    const imgSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&ecc=M&data=' + encodeURIComponent(url);
+    const attempt = (tries) => {
+      const container = document.getElementById('qr-code-container');
+      if (!container) {
+        if (tries > 0) setTimeout(() => attempt(tries - 1), 120);
+        return;
+      }
+      container.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = imgSrc;
+      img.width = 220;
+      img.height = 220;
+      img.alt = 'QR Code';
+      img.style.display = 'block';
+      container.appendChild(img);
+    };
+    setTimeout(() => attempt(8), 100);
+  }
+
+  _startCountdown() {
+    if (this._countdownTimer) clearInterval(this._countdownTimer);
+    this._countdownTimer = setInterval(() => {
+      this.setState(s => {
+        if (s.captureCountdown <= 1) {
+          clearInterval(this._countdownTimer);
+          return { captureCountdown: 0, captureStatus: 'expired' };
+        }
+        return { captureCountdown: s.captureCountdown - 1 };
+      });
+    }, 1000);
+  }
+
+  _stopTimers() {
+    if (this._countdownTimer) { clearInterval(this._countdownTimer); this._countdownTimer = null; }
+  }
+
+  handleLogin(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const { authEmail, authPassword } = this.state;
+    if (!authEmail.trim() || !authPassword.trim()) {
+      this.setState({ authError: 'Ingresa correo y contraseña.' });
+      return;
+    }
+    this.setState({ isAuthLoading: true, authError: '' });
+    // SUPABASE: const { data, error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+    // Un solo rol "almacen" en v1 — validar error.message y mapear a copy en español.
+    setTimeout(() => {
+      try { localStorage.setItem('ca-auth-email', authEmail.trim()); } catch (e) {}
+      this.setState({ isAuthenticated: true, isAuthLoading: false, authPassword: '' });
+      this._maybeAutoStartTour();
+    }, 500);
+  }
+
+  handleLogout() {
+    // SUPABASE: await supabase.auth.signOut();
+    try { localStorage.removeItem('ca-auth-email'); } catch (e) {}
+    this.setState({ isAuthenticated: false, authEmail: '', authPassword: '', authError: '', view: 'dashboard' });
+  }
+
+  toggleTheme() {
+    this.setState(s => {
+      const next = s.theme === 'light' ? 'dark' : 'light';
+      try { localStorage.setItem('ca-theme', next); } catch (e) {}
+      return { theme: next };
+    });
+  }
+
+  openCapture(reqId) {
+    const sessionId = 'SESS-' + Date.now().toString(36).toUpperCase();
+    // SUPABASE: INSERT INTO capture_sessions (id, requisicion_id, estatus, expira_en, creado_en)
+    // VALUES (sessionId, reqId, 'esperando_fotos', NOW() + INTERVAL '15 minutes', NOW())
+    this.setState({ view: 'qr', captureReqId: reqId, captureSessionId: sessionId, captureStatus: 'waiting', captureCountdown: 900 });
+  }
+
+  simulatePhotosReceived() {
+    // Demo: simula el flujo móvil → Claude Vision → renglones JSON
+    // En producción: Supabase Realtime detecta estatus='fotos_recibidas' en capture_sessions
+    // y llama a Claude API (claude-opus-4-5) con las fotos en base64.
+    // Prompt esperado: devolver SÓLO JSON { renglones: [{producto,cantidad,unidad,costo,origen,confianza}] }
+    this.setState({ captureStatus: 'received' });
+    setTimeout(() => {
+      this.setState({ captureStatus: 'processing' });
+      setTimeout(() => {
+        const req = this.state.requisiciones.find(r => r.id === this.state.captureReqId);
+        const rows = req ? req.renglonesFoodbot.map((fb, i) => ({
+          id: 'nr-' + i, producto: fb.producto, cantidad: String(fb.cantidad), unidad: 'pz', costo: String(fb.costo),
+          origen: i % 2 === 0 ? 'almacen' : 'cocina', confianza: 0.8 + (i % 3) * 0.06,
+        })) : [];
+        this.setState({ captureStatus: 'ready', reviewRows: rows });
+      }, 2200);
+    }, 1100);
+  }
+
+  saveCaptura() {
+    const { reviewFecha, reviewRows, captureReqId } = this.state;
+    this.setState({ saveError: '' });
+    if (!reviewFecha) { this.setState({ saveError: 'La fecha de entrega es obligatoria.' }); return; }
+    if (!reviewRows.length) { this.setState({ saveError: 'Debes capturar al menos un renglón.' }); return; }
+    const req = this.state.requisiciones.find(r => r.id === captureReqId);
+    const confirmMsg = 'Vas a guardar la entrega de ' + (req ? req.folio : 'esta requisición') + ' con ' + reviewRows.length + ' renglón(es).\n\nEsta acción es irreversible: renglones_reparto queda inmutable una vez guardado. ¿Confirmas?';
+    if (!window.confirm(confirmMsg)) return;
+    // SUPABASE: envolver los INSERT/UPDATE de abajo en try/catch — en error real:
+    // this.setState({ saveError: 'No se pudo guardar la entrega. Verifica tu conexión e intenta de nuevo.' }); return;
+
+    // SUPABASE:
+    // 1. Batch INSERT INTO renglones_reparto para cada renglón (requisicion_id = captureReqId)
+    // 2. UPDATE requisiciones SET fecha_entrega = reviewFecha WHERE id = captureReqId
+    // 3. UPDATE capture_sessions SET estatus='completada' WHERE id = captureSessionId
+    // IMPORTANTE: renglones_reparto es INMUTABLE después de insertarse.
+
+    this._stopTimers();
+    this.setState(s => ({
+      requisiciones: s.requisiciones.map(r => r.id !== captureReqId ? r : {
+        ...r,
+        fecha: reviewFecha,
+        renglonesReparto: reviewRows.map((rr, i) => ({
+          id: 'rp-new-' + i + '-' + Date.now(),
+          producto: rr.producto,
+          cantidad: parseFloat(rr.cantidad) || 0,
+          unidad: rr.unidad,
+          costo: parseFloat(rr.costo) || 0,
+          origen: rr.origen,
+          confianza_ocr: rr.confianza,
+        })),
+      }),
+      view: 'requisiciones',
+      captureReqId: null,
+      captureSessionId: null,
+      captureStatus: 'idle',
+      captureCountdown: 900,
+      reviewRows: [],
+      reviewFecha: new Date().toISOString().split('T')[0],
+    }));
+  }
+
+  handleExcelUpload(e) {
+    const file = e.target && e.target.files && e.target.files[0];
+    if (!file) return;
+    this.setState({ uploadError: '' });
+    if (!/\.(xlsx|xls|csv)$/i.test(file.name)) {
+      this.setState({ uploadError: 'Formato no soportado. Sube un archivo .xlsx, .xls o .csv exportado por Foodbot.' });
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      this.setState({ uploadError: 'El archivo pesa más de 10 MB — no parece un export válido de Foodbot.' });
+      e.target.value = '';
+      return;
+    }
+    if (!this.state.uploadSucursal) {
+      this.setState({ uploadError: 'Selecciona la sucursal destino antes de subir el Excel.' });
+      e.target.value = '';
+      return;
+    }
+    this.setState({ foodbotUploadStatus: 'loading' });
+
+    // PRODUCCIÓN: Usar SheetJS (XLSX) para parsear:
+    // const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+    // const ws = wb.Sheets[wb.SheetNames[0]];
+    // const rows = XLSX.utils.sheet_to_json(ws);
+    // Mapear columnas al schema renglones_foodbot (folio, producto, cantidad, costo)
+    // 1. INSERT INTO requisiciones (folio, sucursal, fecha, estatus='pendiente_captura')
+    // 2. Batch INSERT INTO renglones_foodbot (requisicion_id, producto, cantidad, costo)
+    // Envolver ambos INSERTs en try/catch — en error real:
+    // this.setState({ foodbotUploadStatus: 'idle', uploadError: 'No se pudo crear la requisición. Verifica tu conexión e intenta de nuevo.' });
+
+    // DEMO: mock que crea una nueva requisición pendiente de captura
+    setTimeout(() => {
+      const folio = 'REQ-2025-0' + (25 + Math.floor(Math.random() * 4));
+      const mockRows = [
+        { producto: 'Salsa de chile negro', cantidad: 6, costo: 58 },
+        { producto: 'Brócoli chino', cantidad: 10, costo: 24 },
+        { producto: 'Aceite de ajonjolí', cantidad: 4, costo: 180 },
+      ];
+      const newReq = {
+        id: 'req-' + Date.now(),
+        folio, sucursal: this.state.uploadSucursal,
+        fecha: new Date().toISOString().split('T')[0],
+        renglonesFoodbot: mockRows,
+        renglonesReparto: [],
+      };
+      this.setState(s => ({
+        requisiciones: [newReq, ...s.requisiciones],
+        foodbotUploadStatus: 'loaded',
+        lastUploadFolio: folio,
+        lastUploadCount: mockRows.length,
+        uploadSucursal: '',
+      }));
+    }, 1100);
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    // ---- Helpers de estilo (chips usan tokens CSS → responden al tema) ----
+    const CHIP = { padding: '2px 8px', fontSize: '9px', fontWeight: '700', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'inline-block', whiteSpace: 'nowrap' };
+    const chip = (key) => ({ ...CHIP, color: 'var(--chip-' + key + '-tx)', background: 'var(--chip-' + key + '-bg)', border: '1px solid var(--chip-' + key + '-bd)' });
+
+    const STATUS_CHIPS = {
+      conciliada: chip('ok'), con_ajuste: chip('warn'), con_diferencias: chip('warn'), pendiente_captura: chip('mut'),
+    };
+    const STATUS_LABELS = {
+      conciliada: 'CONCILIADA', con_ajuste: 'CON AJUSTE', con_diferencias: 'DIFERENCIAS', pendiente_captura: 'PENDIENTE CAPTURA',
+    };
+    const MATCH_CHIPS = {
+      ok: chip('ok'), diferencia: chip('warn'), no_encontrado: chip('pur'), ajustado: chip('ok'),
+    };
+    const MATCH_LABELS = {
+      ok: '✓ MATCH', diferencia: '⚠ DIFERENCIA', no_encontrado: '? NO EN FOODBOT', ajustado: '✓ AJUSTADO',
+    };
+
+    // ---- Deriva estatus + match por renglón para una requisición ----
+    const ORIGEN_CHIP = { ...CHIP, background: 'var(--org-alm-bg)', color: 'var(--org-alm-tx)', border: '1px solid var(--org-alm-bd)' };
+    const COCINA_CHIP = { ...CHIP, background: 'var(--org-coc-bg)', color: 'var(--org-coc-tx)', border: '1px solid var(--org-coc-bd)' };
+
+    const deriveReq = (req) => {
+      const needsCaptura = req.renglonesReparto.length === 0;
+      let renglones = [];
+      let computedStatus;
+      let importe;
+
+      if (needsCaptura) {
+        computedStatus = 'pendiente_captura';
+        importe = req.renglonesFoodbot.reduce((sum, fb) => sum + (parseFloat(fb.cantidad) || 0) * (parseFloat(fb.costo) || 0), 0);
+      } else {
+        renglones = req.renglonesReparto.map(rl => {
+          const adj = s.adjustments[rl.id] || {};
+          const fb = req.renglonesFoodbot.find(fb2 => fb2.producto === rl.producto && Number(fb2.costo) === Number(rl.costo));
+          let matchStatus, fbCant = null;
+          if (!fb) {
+            matchStatus = 'no_encontrado';
+          } else {
+            fbCant = fb.cantidad;
+            matchStatus = Number(fb.cantidad) !== Number(rl.cantidad) ? (adj.guardado ? 'ajustado' : 'diferencia') : 'ok';
+          }
+          return {
+            id: rl.id, producto: rl.producto, cantidad: rl.cantidad,
+            unidad: rl.unidad || '—', costo: rl.costo, origen: rl.origen,
+            matchStatus, fbCantidad: fbCant,
+            adjCantidad: adj.cantidadNueva || '', adjMotivo: adj.motivo || '',
+            adjCantSaved: adj.cantidadNueva || '', adjSavedAt: adj.savedAt || '',
+            rowStyle: {
+              borderBottom: '1px solid var(--divider)',
+              background: matchStatus === 'diferencia' ? 'var(--row-diff)' : matchStatus === 'no_encontrado' ? 'var(--row-none)' : 'transparent',
+            },
+            fbCantStr: fbCant !== null ? String(fbCant) : '—',
+            fbCantStyle: { fontSize: '13px', fontWeight: '700', color: fbCant !== null && Number(fbCant) !== Number(rl.cantidad) ? '#E84926' : 'var(--t7)' },
+            origenStyle: rl.origen === 'almacen' ? ORIGEN_CHIP : COCINA_CHIP,
+            origenLabel: rl.origen === 'almacen' ? 'ALMACÉN' : 'COCINA',
+            matchChipStyle: MATCH_CHIPS[matchStatus],
+            matchLabel: MATCH_LABELS[matchStatus],
+            adjHistorial: adj.historial || [],
+            hasAdjHistorial: !!(adj.historial && adj.historial.length),
+            adjError: s.adjustmentErrors[rl.id] || '',
+            hasAdjError: !!s.adjustmentErrors[rl.id],
+            showChip: matchStatus === 'ok',
+            showAdjForm: matchStatus === 'diferencia' || matchStatus === 'no_encontrado' || (matchStatus === 'ajustado' && s.editingAdjRow === rl.id),
+            showAdjSaved: matchStatus === 'ajustado' && s.editingAdjRow !== rl.id,
+          };
+        });
+        const hasUnresolved = renglones.some(r => r.matchStatus === 'diferencia' || r.matchStatus === 'no_encontrado');
+        const hasAjuste = renglones.some(r => r.matchStatus === 'ajustado');
+        computedStatus = hasUnresolved ? 'con_diferencias' : hasAjuste ? 'con_ajuste' : 'conciliada';
+        importe = req.renglonesReparto.reduce((sum, rl) => sum + (parseFloat(rl.cantidad) || 0) * (parseFloat(rl.costo) || 0), 0);
+      }
+
+      return { needsCaptura, renglones, computedStatus, importe };
+    };
+
+    // ---- Dashboard filters ----
+    const dateFiltered = s.requisiciones.filter(r => {
+      if (s.filterSucursal !== 'all' && r.sucursal !== s.filterSucursal) return false;
+      if (s.filterDateFrom && r.fecha < s.filterDateFrom) return false;
+      if (s.filterDateTo && r.fecha > s.filterDateTo) return false;
+      return true;
+    });
+
+    const derivedById = {};
+    s.requisiciones.forEach(r => { derivedById[r.id] = deriveReq(r); });
+
+    const matchesStatusFilter = (r) => {
+      const st = derivedById[r.id].computedStatus;
+      if (s.filterStatus === 'all') return true;
+      if (s.filterStatus === 'con_ajuste_diferencias') return st === 'con_ajuste' || st === 'con_diferencias';
+      return st === s.filterStatus;
+    };
+    const filtered = dateFiltered.filter(matchesStatusFilter);
+
+    const statTotal = dateFiltered.length;
+    const statConciliadas = dateFiltered.filter(r => derivedById[r.id].computedStatus === 'conciliada').length;
+    const statAjuste = dateFiltered.filter(r => ['con_ajuste', 'con_diferencias'].includes(derivedById[r.id].computedStatus)).length;
+    const statPendiente = dateFiltered.filter(r => derivedById[r.id].computedStatus === 'pendiente_captura').length;
+    const importe = filtered.reduce((sum, req) => sum + derivedById[req.id].importe, 0);
+
+    const hasStatusFilter = s.filterStatus !== 'all';
+    const STATUS_FILTER_LABELS = { conciliada: 'CONCILIADAS SIN AJUSTE', con_ajuste_diferencias: 'CON AJUSTE / DIFERENCIAS', pendiente_captura: 'PENDIENTE CAPTURA' };
+    const STATUS_FILTER_CHIP = { conciliada: chip('ok'), con_ajuste_diferencias: chip('warn'), pendiente_captura: chip('mut') };
+    const activeStatusLabel = STATUS_FILTER_LABELS[s.filterStatus] || '';
+    const activeStatusChipStyle = STATUS_FILTER_CHIP[s.filterStatus] || chip('mut');
+
+    const CARD_BASE = { background: 'var(--surface)', border: '1px solid var(--border)', padding: '18px 22px', cursor: 'pointer', transition: 'background 0.15s ease' };
+    const cardStyle = (key, accent) => ({
+      ...CARD_BASE,
+      borderTop: accent ? '2px solid ' + accent : CARD_BASE.border,
+      outline: s.filterStatus === key ? '2px solid #FFCD02' : 'none',
+      outlineOffset: '-2px',
+    });
+    const statCardStyleAll = cardStyle('all', null);
+    const statCardStyleConciliada = cardStyle('conciliada', '#29E7BC');
+    const statCardStyleAjuste = cardStyle('con_ajuste_diferencias', '#E84926');
+    const statCardStylePendiente = cardStyle('pendiente_captura', '#FFCD02');
+
+    // ---- Product breakdown (renglones de reparto de las requisiciones filtradas) ----
+    const productMap = {};
+    filtered.forEach(r => {
+      r.renglonesReparto.forEach(rl => {
+        if (!productMap[rl.producto]) productMap[rl.producto] = { cantidad: 0, importe: 0, reqIds: new Set(), unidad: rl.unidad };
+        productMap[rl.producto].cantidad += parseFloat(rl.cantidad) || 0;
+        productMap[rl.producto].importe += (parseFloat(rl.cantidad) || 0) * (parseFloat(rl.costo) || 0);
+        productMap[rl.producto].reqIds.add(r.id);
+      });
+    });
+    const productBreakdown = Object.entries(productMap).map(([producto, d]) => ({
+      producto,
+      cantidadStr: d.cantidad.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' ' + (d.unidad || ''),
+      reqCount: d.reqIds.size,
+      importeStr: '$' + d.importe.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+      importe: d.importe,
+    })).sort((a, b) => b.importe - a.importe);
+    const hasNoProducts = productBreakdown.length === 0;
+
+    // ---- Top productos con más fricción (diferencias + ajustados) en el período filtrado ----
+    const frictionMap = {};
+    filtered.forEach(r => {
+      const d = derivedById[r.id];
+      if (d.needsCaptura) return;
+      d.renglones.forEach(rl => {
+        if (rl.matchStatus === 'diferencia' || rl.matchStatus === 'no_encontrado' || rl.matchStatus === 'ajustado') {
+          frictionMap[rl.producto] = (frictionMap[rl.producto] || 0) + 1;
+        }
+      });
+    });
+    const maxFriction = Math.max(1, ...Object.values(frictionMap));
+    const frictionProducts = Object.entries(frictionMap)
+      .map(([producto, count]) => ({
+        producto, count,
+        barStyle: { background: '#E84926', height: '4px', width: Math.round(count / maxFriction * 100) + '%' },
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+    const hasFrictionProducts = frictionProducts.length > 0;
+
+    // ---- Nav badge: requisiciones con_diferencias (global, sin filtros) ----
+    const diffBadgeCount = s.requisiciones.filter(r => derivedById[r.id].computedStatus === 'con_diferencias').length;
+    const hasDiffBadge = diffBadgeCount > 0;
+    const diffBadgeStyle = { background: '#E84926', color: '#fff', fontSize: '10px', fontWeight: '800', borderRadius: '999px', minWidth: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', lineHeight: '1' };
+
+    // ---- Branch breakdown ----
+    const sucursalMap = {};
+    filtered.forEach(r => {
+      if (!sucursalMap[r.sucursal]) sucursalMap[r.sucursal] = { total: 0, ajuste: 0 };
+      sucursalMap[r.sucursal].total++;
+      if (['con_ajuste', 'con_diferencias'].includes(derivedById[r.id].computedStatus)) sucursalMap[r.sucursal].ajuste++;
+    });
+    const maxAj = Math.max(1, ...Object.values(sucursalMap).map(d => d.ajuste));
+    const sucursalBreakdown = Object.entries(sucursalMap).map(([name, d]) => {
+      const pct = d.total > 0 ? Math.round(d.ajuste / d.total * 100) : 0;
+      return {
+        name, total: d.total, ajuste: d.ajuste, pct,
+        barStyle: { background: d.ajuste > 0 ? '#E84926' : 'var(--t8)', height: '3px', width: Math.round(d.ajuste / maxAj * 100) + '%', maxWidth: '110px', transition: 'width 0.5s ease' },
+        ajusteStyle: { fontSize: '14px', fontWeight: '700', color: d.ajuste > 0 ? '#E84926' : 'var(--t8)' },
+        pctStyle: { fontSize: '12px', fontWeight: '700', color: pct > 33 ? '#E84926' : pct > 0 ? 'var(--t3)' : 'var(--t8)' },
+      };
+    }).sort((a, b) => b.ajuste - a.ajuste);
+
+    const allSucursales = [...new Set(s.requisiciones.map(r => r.sucursal))].sort();
+
+    const filteredReqs = filtered.map(req => {
+      const d = derivedById[req.id];
+      return {
+        ...req,
+        statusChipStyle: STATUS_CHIPS[d.computedStatus],
+        statusLabel: STATUS_LABELS[d.computedStatus],
+        importeStr: '$' + d.importe.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+      };
+    });
+
+    // ---- Nav (siempre sobre fondo negro) ----
+    const navBase = { border: 'none', padding: '0 18px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', height: '100%', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '-2px', fontFamily: 'inherit' };
+    const isD = s.view === 'dashboard';
+    const isR = s.view === 'requisiciones';
+    const isComp = s.view === 'comparativo';
+    const navDashStyle = { ...navBase, background: isD ? '#1a1400' : 'transparent', color: isD ? '#FFCD02' : '#9a9aa0', borderBottom: isD ? '2px solid #FFCD02' : '2px solid transparent' };
+    const navReqStyle = { ...navBase, background: isR ? '#1a1400' : 'transparent', color: isR ? '#FFCD02' : '#9a9aa0', borderBottom: isR ? '2px solid #FFCD02' : '2px solid transparent' };
+    const navCompStyle = { ...navBase, background: isComp ? '#1a1400' : 'transparent', color: isComp ? '#FFCD02' : '#9a9aa0', borderBottom: isComp ? '2px solid #FFCD02' : '2px solid transparent' };
+
+    // ---- Comparativo mes vs mes (misma sucursal siempre) ----
+    const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const monthKey = (fecha) => fecha.slice(0, 7);
+    const monthLabel = (key) => { const [y, m] = key.split('-'); return MONTH_NAMES[parseInt(m, 10) - 1] + ' ' + y; };
+    const availableMonthsSet = [...new Set(s.requisiciones.map(r => monthKey(r.fecha)))].sort().reverse();
+    const availableMonths = availableMonthsSet.map(v => ({ value: v, label: monthLabel(v) }));
+
+    // ---- Sparkline: tendencia de fricción mes a mes (todas las sucursales, cronológico) ----
+    const chronoMonths = [...availableMonthsSet].reverse();
+    const monthlyFrictionPct = chronoMonths.map(mk => {
+      const reqsInMonth = s.requisiciones.filter(r => monthKey(r.fecha) === mk);
+      const withAjuste = reqsInMonth.filter(r => ['con_ajuste', 'con_diferencias'].includes(derivedById[r.id].computedStatus)).length;
+      return reqsInMonth.length > 0 ? Math.round(withAjuste / reqsInMonth.length * 100) : 0;
+    });
+    const hasMonthlyTrend = chronoMonths.length >= 2;
+    const trendSvgWidth = 400;
+    const trendPad = 16;
+    const trendPoints = chronoMonths.map((mk, i) => {
+      const pct = monthlyFrictionPct[i];
+      const x = chronoMonths.length > 1 ? trendPad + (i / (chronoMonths.length - 1)) * (trendSvgWidth - trendPad * 2) : trendSvgWidth / 2;
+      const y = 82 - (pct / 100) * 64;
+      return { x: Math.round(x), y: Math.round(y), label: monthLabel(mk), pctStr: pct + '%' };
+    });
+    const trendPolylinePoints = trendPoints.map(p => p.x + ',' + p.y).join(' ');
+
+    const monthStats = (monthKey_) => {
+      const map = {};
+      s.requisiciones.filter(r => monthKey(r.fecha) === monthKey_).forEach(r => {
+        const d = derivedById[r.id];
+        if (!map[r.sucursal]) map[r.sucursal] = { req: 0, importe: 0, ajuste: 0, reqs: [] };
+        map[r.sucursal].req++;
+        map[r.sucursal].importe += d.importe;
+        if (['con_ajuste', 'con_diferencias'].includes(d.computedStatus)) map[r.sucursal].ajuste++;
+        map[r.sucursal].reqs.push(r);
+      });
+      return map;
+    };
+    const statsA = monthStats(s.monthA);
+    const statsB = monthStats(s.monthB);
+    const branchesInEither = [...new Set([...Object.keys(statsA), ...Object.keys(statsB)])].sort();
+
+    // Renglones con diferencia/no_encontrado/ajustado (o pendiente de captura), para el detalle expandible
+    const diffLinesForReqs = (reqs) => {
+      const lines = [];
+      (reqs || []).forEach(r => {
+        const d = derivedById[r.id];
+        if (d.needsCaptura) {
+          lines.push({ folio: r.folio, fecha: r.fecha, producto: '— (pendiente de captura de entrega)', cantReparto: '—', cantFoodbot: '—', matchLabel: STATUS_LABELS.pendiente_captura, matchChipStyle: STATUS_CHIPS.pendiente_captura });
+          return;
+        }
+        d.renglones.filter(rl => rl.matchStatus !== 'ok').forEach(rl => {
+          lines.push({
+            folio: r.folio, fecha: r.fecha, producto: rl.producto,
+            cantReparto: String(rl.cantidad), cantFoodbot: rl.fbCantStr,
+            matchLabel: rl.matchLabel, matchChipStyle: rl.matchChipStyle,
+          });
+        });
+      });
+      return lines;
+    };
+
+    const comparativoRows = branchesInEither.map(sucursal => {
+      const a = statsA[sucursal] || { req: 0, importe: 0, ajuste: 0, reqs: [] };
+      const b = statsB[sucursal] || { req: 0, importe: 0, ajuste: 0, reqs: [] };
+      const delta = a.importe - b.importe;
+      const deltaPct = b.importe > 0 ? Math.round(delta / b.importe * 100) : (a.importe > 0 ? 100 : 0);
+      const isExpanded = s.expandedComparativoSucursal === sucursal;
+      const diffLinesA = isExpanded ? diffLinesForReqs(a.reqs) : [];
+      const diffLinesB = isExpanded ? diffLinesForReqs(b.reqs) : [];
+      return {
+        sucursal, isExpanded,
+        labelA: monthLabel(s.monthA), labelB: monthLabel(s.monthB),
+        reqA: a.req, reqB: b.req,
+        importeAStr: '$' + a.importe.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+        importeBStr: '$' + b.importe.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+        friccionAStr: a.req > 0 ? Math.round(a.ajuste / a.req * 100) + '%' : '—',
+        friccionBStr: b.req > 0 ? Math.round(b.ajuste / b.req * 100) + '%' : '—',
+        deltaStr: (delta >= 0 ? '+' : '') + delta.toLocaleString('es-MX', { maximumFractionDigits: 0 }) + ' (' + (deltaPct >= 0 ? '+' : '') + deltaPct + '%)',
+        deltaStyle: { fontSize: '15px', fontWeight: '800', color: delta > 0 ? '#E84926' : delta < 0 ? '#29E7BC' : 'var(--t6)' },
+        arrowStyle: { fontSize: '12px', color: 'var(--t7)', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'inline-block', marginLeft: '10px' },
+        diffLinesA, diffLinesB,
+        hasNoDiffs: isExpanded && diffLinesA.length === 0 && diffLinesB.length === 0,
+      };
+    });
+    const hasNoComparativoRows = comparativoRows.length === 0;
+
+    // ---- QR Status (siempre oscuro) ----
+    const mins = Math.floor(s.captureCountdown / 60);
+    const secs = s.captureCountdown % 60;
+    const countdownStr = mins + ':' + secs.toString().padStart(2, '0');
+    const QR_CFG = {
+      waiting:    { text: 'Esperando fotos desde el celular...', bg: '#0d0d00', border: '#2a2000', dot: '#FFCD02', color: '#FFCD02', anim: 'blink 1.4s ease-in-out infinite' },
+      received:   { text: 'Fotos recibidas — iniciando análisis...', bg: '#0a1420', border: '#1a2840', dot: '#5a9acc', color: '#6aaae0', anim: 'blink 0.7s ease-in-out infinite' },
+      processing: { text: 'Claude Vision extrayendo datos del documento...', bg: '#0a1420', border: '#1a2840', dot: '#5a9acc', color: '#6aaae0', anim: 'spin 1s linear infinite' },
+      ready:      { text: '¡Datos listos para revisión!', bg: '#0a2218', border: '#1a4232', dot: '#29E7BC', color: '#29E7BC', anim: 'none' },
+      expired:    { text: 'Sesión expirada. Genera un nuevo QR.', bg: '#1e0800', border: '#3a1200', dot: '#E84926', color: '#E84926', anim: 'none' },
+    };
+    const qrCfg = QR_CFG[s.captureStatus] || QR_CFG.waiting;
+
+    // ---- Captura target (requisición siendo capturada) ----
+    const captureTargetReq = s.requisiciones.find(r => r.id === s.captureReqId);
+    const captureTargetFolio = captureTargetReq ? captureTargetReq.folio : '—';
+    const captureTargetSucursal = captureTargetReq ? captureTargetReq.sucursal : '—';
+    const captureTargetLabel = captureTargetReq ? (captureTargetReq.folio + ' · ' + captureTargetReq.sucursal) : '—';
+
+    // ---- Review rows ----
+    const reviewTotal = s.reviewRows.reduce((sum, r) =>
+      sum + (parseFloat(r.cantidad) || 0) * (parseFloat(r.costo) || 0), 0);
+    const reviewRows = s.reviewRows.map((r, i) => {
+      const conf = r.confianza;
+      return {
+        ...r,
+        rowNum: String(i + 1).padStart(2, '0'),
+        rowStyle: { borderBottom: '1px solid var(--divider)', background: conf !== null && conf < 0.82 ? 'var(--row-lowc)' : conf !== null && conf < 0.90 ? 'var(--row-medc)' : 'transparent' },
+        origenSelectStyle: {
+          background: 'var(--well)', padding: '6px 8px', fontSize: '11px', fontFamily: 'inherit',
+          fontWeight: '700', cursor: 'pointer', letterSpacing: '0.04em',
+          border: r.origen === 'almacen' ? '1px solid var(--org-alm-bd)' : '1px solid var(--org-coc-bd)',
+          borderLeft: r.origen === 'almacen' ? '3px solid #FFCD02' : '3px solid #E84926',
+          color: r.origen === 'almacen' ? 'var(--org-alm-tx)' : 'var(--org-coc-tx)',
+        },
+        confStr: conf === null ? '—' : Math.round(conf * 100) + (conf < 0.87 ? '% ⚠' : '%'),
+        confStyle: { fontSize: '11px', fontWeight: '800', letterSpacing: '0.02em', color: conf === null ? 'var(--t8)' : conf >= 0.92 ? '#0e8f72' : conf >= 0.87 ? '#b58900' : '#E84926' },
+      };
+    });
+
+    // ---- Requisiciones (fase 2 — captura + conciliación) ----
+    const searchFolioNorm = (s.searchFolio || '').trim().toLowerCase();
+    const reqsForConciliationSource = searchFolioNorm
+      ? s.requisiciones.filter(r => r.folio.toLowerCase().includes(searchFolioNorm))
+      : s.requisiciones;
+    const hasNoReqsForConciliation = reqsForConciliationSource.length === 0;
+    const reqsForConciliation = reqsForConciliationSource.map(req => {
+      const d = derivedById[req.id];
+      const isExpanded = req.id === s.expandedReqId;
+      return {
+        ...req, renglones: d.renglones, isExpanded,
+        rengCount: d.needsCaptura ? req.renglonesFoodbot.length : d.renglones.length,
+        needsCaptura: d.needsCaptura,
+        showTable: !d.needsCaptura,
+        importeStr: '$' + d.importe.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+        concStatusStyle: STATUS_CHIPS[d.computedStatus],
+        concStatusLabel: STATUS_LABELS[d.computedStatus],
+        arrowStyle: { fontSize: '13px', color: 'var(--t7)', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'inline-block' },
+      };
+    });
+
+    const sessionUrl = (typeof window !== 'undefined' ? window.location.origin : 'https://almacen.rocknwok.mx') + '/captura-movil/' + (s.captureSessionId || 'SESS-DEMO');
+
+    // Yellow es ilegible sobre blanco → ámbar oscuro en tema claro para el importe
+    const importeColor = s.theme === 'light' ? '#8a6d00' : '#FFCD02';
+
+    // ---- Tour / guía ----
+    const tourSteps = this._tourSteps();
+    const tourStepTotal = tourSteps.length;
+    const curTourStep = tourSteps[s.tourStep] || tourSteps[0];
+    const tourStepNum = s.tourStep + 1;
+    const tourIsFirst = s.tourStep === 0;
+    const tourIsLast = s.tourStep === tourSteps.length - 1;
+    const rect = s.tourRect;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const tourHighlightStyle = rect ? {
+      position: 'fixed', top: (rect.top - 6) + 'px', left: (rect.left - 6) + 'px',
+      width: (rect.width + 12) + 'px', height: (rect.height + 12) + 'px',
+      boxShadow: '0 0 0 9999px rgba(0,0,0,0.82)', border: '2px solid #FFCD02', borderRadius: '4px',
+      zIndex: 901, pointerEvents: 'none',
+    } : {
+      position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.82)', zIndex: 901, pointerEvents: 'none',
+    };
+    const cardWidth = Math.min(320, vw - 32);
+    let cardTop, cardLeft;
+    if (rect) {
+      const spaceBelow = vh - (rect.top + rect.height);
+      cardTop = spaceBelow > 220 ? (rect.top + rect.height + 16) : Math.max(16, rect.top - 206);
+      cardLeft = Math.min(Math.max(16, rect.left), vw - cardWidth - 16);
+    } else {
+      cardTop = vh / 2 - 110;
+      cardLeft = vw / 2 - cardWidth / 2;
+    }
+    const tourCardStyle = {
+      position: 'fixed', top: Math.round(cardTop) + 'px', left: Math.round(cardLeft) + 'px', width: cardWidth + 'px',
+      background: '#0d0d0d', border: '2px solid #FFCD02', padding: '20px', zIndex: 902, pointerEvents: 'auto', fontFamily: 'inherit',
+    };
+    const tourNavBtnBase = { border: 'none', padding: '10px 16px', fontSize: '10px', fontWeight: '800', letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' };
+    const tourPrevBtnStyle = { ...tourNavBtnBase, background: 'transparent', color: tourIsFirst ? '#555' : '#c8c8ce', border: '1px solid #333', opacity: tourIsFirst ? 0.5 : 1, cursor: tourIsFirst ? 'not-allowed' : 'pointer', visibility: tourIsFirst ? 'hidden' : 'visible' };
+    const tourNextBtnStyle = { ...tourNavBtnBase, background: '#FFCD02', color: '#000' };
+
+    // ---- Auth ----
+    const showApp = s.isAuthenticated;
+    const showLogin = !s.isAuthenticated;
+    const hasAuthError = !!s.authError;
+    const loginBtnStyle = {
+      background: s.isAuthLoading ? 'var(--well, #333)' : '#FFCD02', color: '#000', border: 'none',
+      padding: '13px 16px', fontSize: '12px', fontWeight: '900', letterSpacing: '0.08em', textTransform: 'uppercase',
+      cursor: s.isAuthLoading ? 'not-allowed' : 'pointer', marginTop: '4px', opacity: s.isAuthLoading ? 0.7 : 1,
+    };
+    const loginBtnLabel = s.isAuthLoading ? 'INGRESANDO…' : 'INICIAR SESIÓN →';
+    const authUserLabel = s.authEmail || 'Almacén Central';
+
+    const uploadLabelDisabled = !s.uploadSucursal;
+    const uploadLabelStyle = {
+      background: uploadLabelDisabled ? 'var(--well)' : 'var(--hover)',
+      border: '1px solid var(--border-in)', color: uploadLabelDisabled ? 'var(--t8)' : 'var(--t3)',
+      padding: '10px 20px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.1em',
+      cursor: uploadLabelDisabled ? 'not-allowed' : 'pointer', textTransform: 'uppercase',
+      display: 'inline-flex', alignItems: 'center', gap: '8px', opacity: uploadLabelDisabled ? 0.5 : 1,
+    };
+
+    return {
+      // Views
+      isDashboard: s.view === 'dashboard',
+      isQR: s.view === 'qr',
+      isReview: s.view === 'review',
+      isRequisiciones: s.view === 'requisiciones',
+      isComparativo: s.view === 'comparativo',
+      navCompStyle,
+      availableMonths, monthA: s.monthA, monthB: s.monthB, comparativoRows, hasNoComparativoRows,
+      // Theme
+      themeAttr: s.theme,
+      importeColor,
+      themeBtnIcon: s.theme === 'light' ? '☾' : '☀',
+      themeBtnLabel: s.theme === 'light' ? 'OSCURO' : 'CLARO',
+      // Nav
+      navDashStyle, navReqStyle,
+      onlineDotStyle: { width: '7px', height: '7px', background: '#29E7BC', borderRadius: '50%', display: 'inline-block', flexShrink: 0 },
+      // Dashboard
+      statTotal, statConciliadas, statAjuste, statPendiente,
+      statImporte: '$' + importe.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+      statCardStyleAll, statCardStyleConciliada, statCardStyleAjuste, statCardStylePendiente,
+      hasStatusFilter, activeStatusLabel, activeStatusChipStyle,
+      productBreakdown, hasNoProducts,
+      frictionProducts, hasFrictionProducts,
+      hasMonthlyTrend, trendSvgWidth, trendPolylinePoints, trendPoints,
+      hasDiffBadge, diffBadgeCount, diffBadgeStyle,
+      setFilterStatusAll: () => this.setState({ filterStatus: 'all' }),
+      setFilterStatusConciliada: () => this.setState({ filterStatus: s.filterStatus === 'conciliada' ? 'all' : 'conciliada' }),
+      setFilterStatusAjuste: () => this.setState({ filterStatus: s.filterStatus === 'con_ajuste_diferencias' ? 'all' : 'con_ajuste_diferencias' }),
+      setFilterStatusPendiente: () => this.setState({ filterStatus: s.filterStatus === 'pendiente_captura' ? 'all' : 'pendiente_captura' }),
+      filteredReqs, sucursalBreakdown, allSucursales,
+      filterDateFrom: s.filterDateFrom, filterDateTo: s.filterDateTo, filterSucursal: s.filterSucursal,
+      // Requisiciones — upload
+      uploadSucursal: s.uploadSucursal, uploadLabelStyle,
+      isFoodbotLoading: s.foodbotUploadStatus === 'loading',
+      isFoodbotJustLoaded: s.foodbotUploadStatus === 'loaded',
+      lastUploadFolio: s.lastUploadFolio, lastUploadCount: s.lastUploadCount,
+      uploadError: s.uploadError, hasUploadError: !!s.uploadError,
+      saveError: s.saveError, hasSaveError: !!s.saveError,
+      // QR
+      isQRWaiting: s.captureStatus === 'waiting',
+      isQRReady: s.captureStatus === 'ready',
+      countdownStr, qrStatusText: qrCfg.text, sessionUrl,
+      qrStatusAreaStyle: { background: qrCfg.bg, border: '1px solid ' + qrCfg.border, padding: '12px 16px' },
+      qrDotStyle: { width: '8px', height: '8px', borderRadius: '50%', background: qrCfg.dot, flexShrink: 0, display: 'inline-block', minWidth: '8px' },
+      qrStatusTextStyle: { fontSize: '12px', color: qrCfg.color, fontWeight: '700', lineHeight: '1.4' },
+      captureTargetLabel, captureTargetFolio, captureTargetSucursal,
+      // Review
+      reviewRows, reviewRowCount: reviewRows.length,
+      reviewFecha: s.reviewFecha,
+      reviewTotal: '$' + reviewTotal.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+      allSucursalesForReview: allSucursales,
+      // Conciliation
+      reqsForConciliation, hasNoReqsForConciliation, searchFolio: s.searchFolio,
+      // Auth
+      showApp, showLogin, authEmail: s.authEmail, authPassword: s.authPassword,
+      hasAuthError, authError: s.authError, isAuthLoading: s.isAuthLoading,
+      loginBtnStyle, loginBtnLabel, authUserLabel,
+      setAuthEmail: e => this.setState({ authEmail: e.target.value }),
+      setAuthPassword: e => this.setState({ authPassword: e.target.value }),
+      handleLoginSubmit: e => this.handleLogin(e),
+      handleLogout: () => this.handleLogout(),
+      // Tour / guía
+      tourActive: s.tourActive, tourFabVisible: !s.tourActive,
+      tourHighlightStyle, tourCardStyle, tourPrevBtnStyle, tourNextBtnStyle,
+      tourStepNum, tourStepTotal, tourStepTitle: curTourStep.title, tourStepText: curTourStep.text,
+      tourNextLabel: tourIsLast ? 'FINALIZAR' : 'SIGUIENTE →',
+      tourFabStyle: {
+        position: 'fixed', bottom: '22px', right: '22px', width: '36px', height: '36px', borderRadius: '50%',
+        background: '#FFCD02', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', boxShadow: '0 4px 0 0 #000', zIndex: 850,
+      },
+      startTour: () => this.startTour(),
+      closeTour: () => this.closeTour(),
+      prevTourStep: () => this.prevTourStep(),
+      nextTourStep: () => this.nextTourStep(),
+      // Handlers
+      toggleTheme: () => this.toggleTheme(),
+      closeCapture: () => { this._stopTimers(); this.setState({ view: 'requisiciones', captureReqId: null, captureSessionId: null, captureStatus: 'idle', captureCountdown: 900, reviewRows: [], saveError: '' }); },
+      simulatePhotos: () => this.simulatePhotosReceived(),
+      proceedToReview: () => { this._stopTimers(); this.setState({ view: 'review' }); },
+      goToDashboard: () => this.setState({ view: 'dashboard' }),
+      goToRequisiciones: () => this.setState({ view: 'requisiciones' }),
+      goToComparativo: () => this.setState({ view: 'comparativo' }),
+      setMonthA: e => this.setState({ monthA: e.target.value }),
+      setMonthB: e => this.setState({ monthB: e.target.value }),
+      toggleComparativoExpand: e => {
+        const sucursal = e.currentTarget.dataset.sucursal;
+        this.setState(ss => ({ expandedComparativoSucursal: ss.expandedComparativoSucursal === sucursal ? null : sucursal }));
+      },
+      setFilterDateFrom: e => this.setState({ filterDateFrom: e.target.value }),
+      setFilterDateTo: e => this.setState({ filterDateTo: e.target.value }),
+      setFilterSucursal: e => this.setState({ filterSucursal: e.target.value }),
+      setUploadSucursal: e => this.setState({ uploadSucursal: e.target.value }),
+      setReviewFecha: e => this.setState({ reviewFecha: e.target.value }),
+      onReviewCellChange: e => {
+        const rowId = e.target.dataset.rowId;
+        const field = e.target.dataset.field;
+        const val = e.target.value;
+        this.setState(ss => ({ reviewRows: ss.reviewRows.map(r => r.id === rowId ? Object.assign({}, r, { [field]: val }) : r) }));
+      },
+      deleteReviewRow: e => {
+        const rowId = e.currentTarget.dataset.rowId;
+        this.setState(ss => ({ reviewRows: ss.reviewRows.filter(r => r.id !== rowId) }));
+      },
+      addReviewRow: () => this.setState(ss => ({
+        reviewRows: ss.reviewRows.concat([{ id: 'nr-' + Date.now(), producto: '', cantidad: '1', unidad: 'pz', costo: '0', origen: 'almacen', confianza: null }])
+      })),
+      saveCaptura: () => this.saveCaptura(),
+      handleExcelUpload: e => this.handleExcelUpload(e),
+      onCapturarEntrega: e => { e.stopPropagation(); this.openCapture(e.currentTarget.dataset.reqId); },
+      toggleExpandReq: e => {
+        const reqId = e.currentTarget.dataset.reqId;
+        this.setState(ss => ({ expandedReqId: ss.expandedReqId === reqId ? null : reqId }));
+      },
+      onAdjustmentChange: e => {
+        const rowId = e.target.dataset.rowId;
+        const field = e.target.dataset.field;
+        this.setState(ss => ({
+          adjustments: Object.assign({}, ss.adjustments, { [rowId]: Object.assign({}, ss.adjustments[rowId] || {}, { [field]: e.target.value }) }),
+          adjustmentErrors: Object.assign({}, ss.adjustmentErrors, { [rowId]: '' }),
+        }));
+      },
+      onSaveAdjustment: e => {
+        const rowId = e.currentTarget.dataset.rowId;
+        const adj = this.state.adjustments[rowId] || {};
+        if (!adj.cantidadNueva) {
+          this.setState(ss => ({ adjustmentErrors: Object.assign({}, ss.adjustmentErrors, { [rowId]: 'Ingresa la cantidad corregida.' }) }));
+          return;
+        }
+        if (!adj.motivo || !adj.motivo.trim()) {
+          this.setState(ss => ({ adjustmentErrors: Object.assign({}, ss.adjustmentErrors, { [rowId]: 'El motivo del ajuste es obligatorio para guardar.' }) }));
+          return;
+        }
+        // SUPABASE: INSERT INTO ajustes (renglon_id, cantidad_anterior, cantidad_nueva, motivo, usuario, creado_en)
+        // NUNCA actualizar renglones_reparto — el dato original es inmutable. Cada corrección es un NUEVO registro.
+        // Envolver el INSERT en try/catch — en error real:
+        // this.setState(ss => ({ adjustmentErrors: Object.assign({}, ss.adjustmentErrors, { [rowId]: 'No se pudo guardar el ajuste. Intenta de nuevo.' }) })); return;
+        this.setState(ss => {
+          const prev = ss.adjustments[rowId] || {};
+          const historial = (prev.guardado && prev.savedSnapshot)
+            ? (prev.historial || []).concat([prev.savedSnapshot])
+            : (prev.historial || []);
+          return {
+            editingAdjRow: null,
+            adjustmentErrors: Object.assign({}, ss.adjustmentErrors, { [rowId]: '' }),
+            adjustments: Object.assign({}, ss.adjustments, {
+              [rowId]: Object.assign({}, ss.adjustments[rowId], {
+                guardado: true,
+                historial,
+                savedSnapshot: null,
+                savedAt: new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+              })
+            })
+          };
+        });
+      },
+      onReopenAdjustment: e => {
+        const rowId = e.currentTarget.dataset.rowId;
+        this.setState(ss => {
+          const prev = ss.adjustments[rowId] || {};
+          return {
+            editingAdjRow: rowId,
+            adjustments: Object.assign({}, ss.adjustments, {
+              [rowId]: Object.assign({}, prev, {
+                savedSnapshot: { cantidadNueva: prev.cantidadNueva, motivo: prev.motivo, savedAt: prev.savedAt },
+              })
+            })
+          };
+        });
+      },
+      setSearchFolio: e => this.setState({ searchFolio: e.target.value }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
