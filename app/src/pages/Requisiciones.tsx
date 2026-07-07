@@ -7,7 +7,7 @@ import CaptureFlow from '../components/CaptureFlow';
 import type { Ajuste } from '../lib/types';
 
 export default function Requisiciones() {
-  const { dashboardRows, conciliacionRows, renglonesFoodbot, ajustes, isLoading, error, refresh } = useData();
+  const { dashboardRows, conciliacionRows, renglonesFoodbot, ajustes, sucursales, isLoading, error, refresh } = useData();
 
   const [searchFolio, setSearchFolio] = useState('');
   const [uploadSucursal, setUploadSucursal] = useState('');
@@ -17,7 +17,7 @@ export default function Requisiciones() {
   const [expandedReqId, setExpandedReqId] = useState<string | null>(null);
   const [captureReqId, setCaptureReqId] = useState<string | null>(null);
 
-  const allSucursales = useMemo(() => [...new Set(dashboardRows.map((r) => r.sucursal))].sort(), [dashboardRows]);
+  const allSucursales = useMemo(() => sucursales.map((s) => s.nombre), [sucursales]);
 
   const searchNorm = searchFolio.trim().toLowerCase();
   const reqsForConciliation = useMemo(
@@ -71,28 +71,42 @@ export default function Requisiciones() {
       e.target.value = '';
       return;
     }
-    if (!uploadSucursal) {
-      setUploadError('Selecciona la sucursal destino antes de subir el Excel.');
-      e.target.value = '';
-      return;
-    }
 
     setUploadStatus('loading');
     try {
       const parsed = await parseFoodbotExcel(file);
-      const reqId = 'req-' + crypto.randomUUID();
 
-      // SUPABASE: INSERT requisiciones (estatus 'pendiente_captura')
+      // Buscar el nombre canónico de la sucursal (case-insensitive)
+      // Foodbot puede escribir "Upaep" mientras la DB tiene "UPAEP"
+      const sucursalCanonica = allSucursales.find(
+        (s) => s.toLowerCase() === parsed.sucursal.toLowerCase()
+      ) ?? parsed.sucursal;
+
+      // Si el usuario pre-seleccionó una sucursal, verificar que coincida
+      if (uploadSucursal && uploadSucursal.toLowerCase() !== parsed.sucursal.toLowerCase()) {
+        setUploadError(`La sucursal del archivo es "${sucursalCanonica}" pero seleccionaste "${uploadSucursal}". Verifica la selección o sube el archivo correcto.`);
+        setUploadStatus('idle');
+        e.target.value = '';
+        return;
+      }
+
+      const reqId = 'req-' + Array.from(crypto.getRandomValues(new Uint8Array(12))).map((b) => b.toString(16).padStart(2, '0')).join('');
+
       const { error: reqErr } = await supabase.from('requisiciones').insert({
         id: reqId,
         folio: parsed.folio,
-        sucursal: uploadSucursal,
-        fecha: new Date().toISOString().split('T')[0],
+        sucursal: sucursalCanonica,
+        fecha: parsed.fecha,
+        importe_total: parsed.importe_total,
         estatus: 'pendiente_captura',
       });
-      if (reqErr) throw reqErr;
+      if (reqErr) {
+        if (reqErr.code === '23505') {
+          throw new Error(`La orden de compra "${parsed.folio}" ya fue cargada anteriormente.`);
+        }
+        throw reqErr;
+      }
 
-      // SUPABASE: batch INSERT renglones_foodbot
       const { error: rowsErr } = await supabase.from('renglones_foodbot').insert(
         parsed.rows.map((r) => ({ requisicion_id: reqId, producto: r.producto, cantidad: r.cantidad, costo: r.costo })),
       );
@@ -104,7 +118,8 @@ export default function Requisiciones() {
       await refresh();
     } catch (err) {
       setUploadStatus('idle');
-      setUploadError(err instanceof Error && err.message.includes('renglones válidos') ? err.message : 'No se pudo crear la requisición. Verifica tu conexión e intenta de nuevo.');
+      const msg = err instanceof Error ? err.message : '';
+      setUploadError(msg || 'No se pudo crear la requisición. Verifica tu conexión e intenta de nuevo.');
     } finally {
       e.target.value = '';
     }
@@ -142,7 +157,7 @@ export default function Requisiciones() {
         <div style={{ flex: 1, minWidth: 220 }}>
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: 'var(--t5)', textTransform: 'uppercase', marginBottom: 5 }}>FASE 1 · ARCHIVO FOODBOT</p>
           <p style={{ fontSize: 13, color: 'var(--t7)', lineHeight: 1.6 }}>
-            Sube el Excel exportado de Foodbot y selecciona la sucursal a la que fue enviada la requisición. Se creará el registro pendiente de captura de entrega.
+            Sube el Excel exportado de Foodbot. La sucursal y fecha de PO se leen automáticamente del archivo. Si seleccionas una sucursal, se verificará que coincida.
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, flexWrap: 'wrap' }}>
@@ -173,8 +188,8 @@ export default function Requisiciones() {
           </div>
           <label
             style={{
-              background: !uploadSucursal ? 'var(--well)' : '#FFCD02',
-              color: !uploadSucursal ? 'var(--t7)' : '#000',
+              background: '#FFCD02',
+              color: '#000',
               border: 'none',
               padding: '10px 18px',
               fontWeight: 900,
@@ -221,6 +236,7 @@ export default function Requisiciones() {
           reqId={captureReqId}
           folio={captureTarget.folio}
           sucursal={captureTarget.sucursal}
+          productosEsperados={(foodbotByReq.get(captureReqId) ?? []).map((r) => r.producto)}
           onClose={() => setCaptureReqId(null)}
           onSaved={async () => {
             setCaptureReqId(null);

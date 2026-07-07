@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { generateQrDataUrl, captureUrl } from '../lib/qr';
 import { formatCountdown, formatMoney, todayIso } from '../lib/format';
 import { confianzaColor, confianzaRowBg, formatConfianza } from '../lib/format';
-import type { CaptureEstatus, CaptureSession, ReviewRow, Unidad } from '../lib/types';
+import type { CaptureEstatus, CaptureSession, PersonalReparto, ReviewRow, Unidad } from '../lib/types';
 
 const QR_CFG: Record<CaptureEstatus, { text: string; bg: string; border: string; dot: string; color: string; anim: string }> = {
   esperando_fotos: { text: 'Esperando fotos desde el celular...', bg: '#0d0d00', border: '#2a2000', dot: '#FFCD02', color: '#FFCD02', anim: 'blink 1.4s ease-in-out infinite' },
@@ -15,17 +15,18 @@ const QR_CFG: Record<CaptureEstatus, { text: string; bg: string; border: string;
   expirada: { text: 'Sesión expirada. Genera un nuevo QR.', bg: '#1e0800', border: '#3a1200', dot: '#E84926', color: '#E84926', anim: 'none' },
 };
 
-const UNIDADES: Unidad[] = ['pz', 'kg', 'lt', 'mz', 'pq', 'cja', 'gr'];
+const UNIDADES: Unidad[] = ['pza', 'kg', 'lt'];
 
 interface Props {
   reqId: string;
   folio: string;
   sucursal: string;
+  productosEsperados: string[]; // productos del Excel de Foodbot
   onClose: () => void;
   onSaved: () => void;
 }
 
-export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }: Props) {
+export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados, onClose, onSaved }: Props) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [estatus, setEstatus] = useState<CaptureEstatus>('esperando_fotos');
   const [expiraEn, setExpiraEn] = useState<string | null>(null);
@@ -37,16 +38,55 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
 
   const [reviewRows, setReviewRows] = useState<ReviewRow[]>([]);
   const [reviewFecha, setReviewFecha] = useState(todayIso());
+  const [docTotal, setDocTotal] = useState<number | null>(null);
   const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [personal, setPersonal] = useState<PersonalReparto[]>([]);
 
   const sessionIdRef = useRef<string | null>(null);
+
+  // Catálogo de personal de reparto para el dropdown de la revisión.
+  useEffect(() => {
+    supabase
+      .from('personal_reparto')
+      .select('id, nombre, activo')
+      .eq('activo', true)
+      .order('nombre')
+      .then(({ data }) => {
+        if (data) setPersonal(data as PersonalReparto[]);
+      });
+  }, []);
+
+  async function handleRepartidorChange(rowId: string, value: string) {
+    if (value === '__nuevo__') {
+      const nombre = window.prompt('Nombre del nuevo repartidor:')?.trim();
+      if (!nombre) return;
+      const { data, error } = await supabase
+        .from('personal_reparto')
+        .insert({ nombre })
+        .select('id, nombre, activo')
+        .single();
+      if (error) {
+        // 23505 = nombre duplicado: recupera el existente y asígnalo
+        if (error.code === '23505') {
+          setReviewRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, repartidor: nombre } : r)));
+          return;
+        }
+        window.alert('No se pudo registrar al repartidor: ' + error.message);
+        return;
+      }
+      setPersonal((prev) => [...prev, data as PersonalReparto].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      setReviewRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, repartidor: (data as PersonalReparto).nombre } : r)));
+      return;
+    }
+    setReviewRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, repartidor: value } : r)));
+  }
 
   // Crea la capture_session al abrir el modal.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const id = 'SESS-' + Date.now().toString(36).toUpperCase();
+      const id = 'SESS-' + Array.from(crypto.getRandomValues(new Uint8Array(10))).map((b) => b.toString(16).padStart(2, '0')).join('').toUpperCase();
       const expira = new Date(Date.now() + 15 * 60 * 1000).toISOString();
       // SUPABASE: INSERT INTO capture_sessions (id, requisicion_id, estatus, expira_en)
       const { error } = await supabase.from('capture_sessions').insert({
@@ -57,7 +97,7 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
       });
       if (cancelled) return;
       if (error) {
-        setInitError('No se pudo generar la sesión de captura. Verifica tu conexión e intenta de nuevo.');
+        setInitError(`Error al crear sesión: ${error.message} (${error.code})`);
         return;
       }
       setSessionId(id);
@@ -74,35 +114,67 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
 
   // SUPABASE: Realtime — detecta sin polling cuándo la Edge Function marcó
   // fotos_recibidas / procesando / listo_para_revision.
+  // COMPLEMENTO: el websocket se suspende cuando la pestaña pasa a segundo
+  // plano y los eventos se pierden. Por eso también re-sincronizamos desde la
+  // DB al volver a la pestaña (visibilitychange) y con un polling ligero de
+  // respaldo mientras la sesión sigue en espera.
   useEffect(() => {
     if (!sessionId) return;
+
+    function applySession(row: CaptureSession) {
+      setEstatus(row.estatus);
+      setVisionError(row.error_mensaje ?? '');
+      if (row.estatus === 'listo_para_revision' && row.extraccion?.renglones) {
+        if (typeof row.extraccion.total === 'number') setDocTotal(row.extraccion.total);
+        setReviewRows((prev) => {
+          if (prev.length > 0) return prev; // ya cargados — no sobreescribir ediciones del usuario
+          return row.extraccion!.renglones.map((r, i) => ({
+            id: `nr-${i}-${Date.now()}`,
+            producto: r.producto,
+            cantidad: String(r.cantidad),
+            unidad: r.unidad,
+            costo: String(r.costo),
+            origen: r.origen,
+            entregado: r.entregado !== false,
+            repartidor: '',
+            confianza: r.confianza,
+          }));
+        });
+      }
+    }
+
+    async function refetchSession() {
+      const { data } = await supabase.from('capture_sessions').select('*').eq('id', sessionId).single();
+      if (data) applySession(data as CaptureSession);
+    }
+
     const channel = supabase
       .channel('session-' + sessionId)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'capture_sessions', filter: `id=eq.${sessionId}` },
-        (payload) => {
-          const row = payload.new as CaptureSession;
-          setEstatus(row.estatus);
-          setVisionError(row.error_mensaje ?? '');
-          if (row.estatus === 'listo_para_revision' && row.extraccion?.renglones) {
-            setReviewRows(
-              row.extraccion.renglones.map((r, i) => ({
-                id: `nr-${i}-${Date.now()}`,
-                producto: r.producto,
-                cantidad: String(r.cantidad),
-                unidad: r.unidad,
-                costo: String(r.costo),
-                origen: r.origen,
-                confianza: r.confianza,
-              })),
-            );
-          }
-        },
+        (payload) => applySession(payload.new as CaptureSession),
       )
       .subscribe();
+
+    // Re-sincroniza al volver a la pestaña (eventos Realtime perdidos en background)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refetchSession();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    // Polling de respaldo cada 8s — barato y garantiza avance aunque Realtime falle
+    const poll = window.setInterval(() => {
+      setEstatus((cur) => {
+        if (cur === 'esperando_fotos' || cur === 'fotos_recibidas' || cur === 'procesando') refetchSession();
+        return cur;
+      });
+    }, 8000);
+
     return () => {
       supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.clearInterval(poll);
     };
   }, [sessionId]);
 
@@ -120,9 +192,19 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
   }, [expiraEn]);
 
   const reviewTotal = useMemo(
-    () => reviewRows.reduce((sum, r) => sum + (parseFloat(r.cantidad) || 0) * (parseFloat(r.costo) || 0), 0),
+    () => reviewRows.filter((r) => r.entregado).reduce((sum, r) => sum + (parseFloat(r.cantidad) || 0) * (parseFloat(r.costo) || 0), 0),
     [reviewRows],
   );
+
+  // Productos del Excel de Foodbot que Gemini NO extrajo de las fotos.
+  const productosFaltantes = useMemo(() => {
+    const extraidos = new Set(reviewRows.map((r) => r.producto.trim().toLowerCase()));
+    return productosEsperados.filter((p) => !extraidos.has(p.trim().toLowerCase()));
+  }, [reviewRows, productosEsperados]);
+
+  function addMissingRow(producto: string) {
+    setReviewRows((rows) => [...rows, { id: 'nr-' + Date.now(), producto, cantidad: '1', unidad: 'pza', costo: '0', origen: 'almacen', entregado: false, repartidor: '', confianza: null }]);
+  }
 
   function updateRow(id: string, field: keyof ReviewRow, value: string) {
     setReviewRows((rows) => rows.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
@@ -133,7 +215,7 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
   }
 
   function addRow() {
-    setReviewRows((rows) => [...rows, { id: 'nr-' + Date.now(), producto: '', cantidad: '1', unidad: 'pz', costo: '0', origen: 'almacen', confianza: null }]);
+    setReviewRows((rows) => [...rows, { id: 'nr-' + Date.now(), producto: '', cantidad: '1', unidad: 'pza', costo: '0', origen: 'almacen', entregado: true, repartidor: '', confianza: null }]);
   }
 
   async function saveCaptura() {
@@ -156,22 +238,25 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
       // SUPABASE: batch INSERT renglones_reparto (inmutable desde este punto)
       const { error: insertErr } = await supabase.from('renglones_reparto').insert(
         reviewRows.map((r) => ({
-          id: 'rp-' + crypto.randomUUID(),
+          id: 'rp-' + Array.from(crypto.getRandomValues(new Uint8Array(10))).map((b) => b.toString(16).padStart(2, '0')).join(''),
           requisicion_id: reqId,
           producto: r.producto,
           cantidad: parseFloat(r.cantidad) || 0,
           unidad: r.unidad,
           costo: parseFloat(r.costo) || 0,
           origen: r.origen,
+          entregado: r.entregado,
+          repartidor: r.repartidor || null,
           confianza_ocr: r.confianza,
         })),
       );
       if (insertErr) throw insertErr;
 
-      // SUPABASE: UPDATE requisiciones SET fecha = reviewFecha, session_id = sessionId
+      // SUPABASE: UPDATE requisiciones — también actualiza importe_total con el total
+      // leído por Gemini del footer del documento (o el calculado si no hubo footer).
       const { error: updateReqErr } = await supabase
         .from('requisiciones')
-        .update({ fecha: reviewFecha, session_id: sessionIdRef.current })
+        .update({ fecha: reviewFecha, session_id: sessionIdRef.current, importe_total: docTotal ?? reviewTotal })
         .eq('id', reqId);
       if (updateReqErr) throw updateReqErr;
 
@@ -302,10 +387,36 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
             <input type="date" value={reviewFecha} onChange={(e) => setReviewFecha(e.target.value)} style={{ background: 'var(--well)', border: '1px solid var(--border-in)', color: 'var(--t1)', padding: '10px 14px', fontSize: 14, fontWeight: 700 }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 130, alignSelf: 'flex-end' }}>
-            <p style={{ fontSize: 9, color: 'var(--t6)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>Importe total</p>
-            <p style={{ fontSize: 24, fontWeight: 900, color: '#FFCD02', lineHeight: 1, letterSpacing: '-0.01em' }}>{formatMoney(reviewTotal)}</p>
+            <p style={{ fontSize: 9, color: 'var(--t6)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+              {docTotal !== null ? 'Total del documento' : 'Importe calculado'}
+            </p>
+            <p style={{ fontSize: 24, fontWeight: 900, color: '#FFCD02', lineHeight: 1, letterSpacing: '-0.01em' }}>
+              {formatMoney(docTotal ?? reviewTotal)}
+            </p>
           </div>
         </div>
+
+        {productosFaltantes.length > 0 && (
+          <div style={{ background: '#1e1400', border: '1px solid #b58900', padding: '14px 20px', marginBottom: 16 }}>
+            <p style={{ fontSize: 11, fontWeight: 800, color: '#FFCD02', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+              ⚠ {productosFaltantes.length} producto{productosFaltantes.length === 1 ? '' : 's'} del Excel no detectado{productosFaltantes.length === 1 ? '' : 's'} en las fotos
+            </p>
+            <p style={{ fontSize: 11, color: 'var(--t6)', marginBottom: 10, lineHeight: 1.5 }}>
+              Verifica contra la hoja física. Haz clic para agregarlo a la tabla y captura su cantidad manualmente.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {productosFaltantes.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => addMissingRow(p)}
+                  style={{ background: 'transparent', border: '1px dashed #b58900', color: '#FFCD02', padding: '5px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                >
+                  + {p}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', marginBottom: 16, overflowX: 'auto' }}>
           <div style={{ padding: '11px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -321,6 +432,8 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
                 <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Unidad</th>
                 <th style={{ textAlign: 'right', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Costo</th>
                 <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Origen</th>
+                <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Repartidor</th>
+                <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Entregado</th>
                 <th style={{ textAlign: 'center', padding: '9px 14px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Confianza</th>
                 <th style={{ width: 36 }}></th>
               </tr>
@@ -330,10 +443,10 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
                 <tr key={row.id} style={{ background: confianzaRowBg(row.confianza) }}>
                   <td style={{ padding: '7px 14px', fontSize: 10, color: 'var(--t9)', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{String(i + 1).padStart(2, '0')}</td>
                   <td style={{ padding: '5px 10px' }}>
-                    <input type="text" value={row.producto} onChange={(e) => updateRow(row.id, 'producto', e.target.value)} style={{ background: 'var(--well)', border: '1px solid var(--border)', color: 'var(--t1)', padding: '6px 10px', fontSize: 13, width: 200, fontWeight: 600 }} />
+                    <input type="text" value={row.producto} onChange={(e) => updateRow(row.id, 'producto', e.target.value)} style={{ background: 'var(--well)', border: '1px solid var(--border)', color: 'var(--t1)', padding: '6px 10px', fontSize: 13, width: '100%', minWidth: 240, fontWeight: 600 }} />
                   </td>
                   <td style={{ padding: '5px 10px' }}>
-                    <input type="number" value={row.cantidad} onChange={(e) => updateRow(row.id, 'cantidad', e.target.value)} style={{ background: 'var(--well)', border: '1px solid var(--border)', color: 'var(--t1)', padding: '6px 10px', fontSize: 13, width: 75, fontWeight: 700, textAlign: 'right' }} />
+                    <input type="number" value={row.cantidad} onChange={(e) => updateRow(row.id, 'cantidad', e.target.value)} style={{ background: 'var(--well)', border: '1px solid var(--border)', color: 'var(--t1)', padding: '6px 10px', fontSize: 13, width: 110, fontWeight: 700, textAlign: 'right' }} />
                   </td>
                   <td style={{ padding: '5px 10px' }}>
                     <select value={row.unidad} onChange={(e) => updateRow(row.id, 'unidad', e.target.value)} style={{ background: 'var(--well)', border: '1px solid var(--border)', color: 'var(--t2)', padding: '6px 8px', fontSize: 12, cursor: 'pointer' }}>
@@ -365,6 +478,52 @@ export default function CaptureFlow({ reqId, folio, sucursal, onClose, onSaved }
                     >
                       <option value="almacen">ALMACÉN</option>
                       <option value="cocina">COCINA</option>
+                    </select>
+                  </td>
+                  <td style={{ padding: '5px 10px' }}>
+                    <select
+                      value={row.repartidor}
+                      onChange={(e) => handleRepartidorChange(row.id, e.target.value)}
+                      style={
+                        {
+                          background: 'var(--well)',
+                          border: '1px solid var(--border)',
+                          color: row.repartidor ? 'var(--t2)' : 'var(--t8)',
+                          padding: '6px 8px',
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          minWidth: 130,
+                        } as CSSProperties
+                      }
+                    >
+                      <option value="">Selecciona…</option>
+                      {personal.map((p) => (
+                        <option key={p.id} value={p.nombre}>
+                          {p.nombre}
+                        </option>
+                      ))}
+                      <option value="__nuevo__">+ Nuevo…</option>
+                    </select>
+                  </td>
+                  <td style={{ padding: '5px 10px' }}>
+                    <select
+                      value={row.entregado ? 'si' : 'no'}
+                      onChange={(e) => setReviewRows((rows) => rows.map((r) => (r.id === row.id ? { ...r, entregado: e.target.value === 'si' } : r)))}
+                      style={
+                        {
+                          background: 'var(--well)',
+                          border: '1px solid var(--border)',
+                          color: row.entregado ? 'var(--chip-ok-tx)' : '#E84926',
+                          padding: '6px 8px',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          borderLeft: `3px solid ${row.entregado ? '#0e8f72' : '#E84926'}`,
+                        } as CSSProperties
+                      }
+                    >
+                      <option value="si">ENTREGADO</option>
+                      <option value="no">NO ENTREGADO</option>
                     </select>
                   </td>
                   <td style={{ padding: '7px 14px', textAlign: 'center' }}>

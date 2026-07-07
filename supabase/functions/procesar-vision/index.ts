@@ -21,33 +21,66 @@ const admin = createClient(supabaseUrl, serviceRoleKey);
 const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
-const PROMPT_OCR = `Analiza esta imagen de una hoja de requisición de insumos de un restaurante (Rock n' Wok).
-Extrae TODOS los renglones que estén resaltados con marcatexto (highlighter).
-- Amarillo = origen "almacen"
-- Naranja  = origen "cocina" (requiere refrigeración)
+function buildPrompt(productosEsperados: string[]): string {
+  const lista = productosEsperados.map((p, i) => `${i + 1}. ${p}`).join('\n');
+  return `Extrae datos de UNA página de una hoja de requisición de insumos de restaurante.
+Es posible que esta página no contenga todos los productos de la lista — extrae solo los que aparezcan resaltados EN ESTA imagen.
 
-Si un renglón no está resaltado, ignóralo. Si no puedes leer una fila con certeza, ómitela — no inventes datos.
+COLUMNAS A LEER (en ese orden de prioridad):
+- Cantidad: columna "Cantidad enviada" (última columna de cantidad)
+- Costo: columna "Precio enviado"
+- Unidad: columna "Unidad base" (pz/kg/lt junto a la cantidad)
 
-Devuelve ÚNICAMENTE este JSON, sin texto adicional ni markdown:
+FORMATO DE NÚMEROS — LEE ESTO CON MÁXIMA ATENCIÓN:
+Todos los números en el documento tienen el formato X.YYY (parte entera PUNTO tres decimales).
+El punto (.) es SIEMPRE separador decimal. Nunca es separador de miles.
+La parte entera X puede ser cualquier número: 1, 2, 6, 12, 50, 100, 200, 618...
+
+Tabla de lectura obligatoria:
+  "2.000"   → devuelve 2        ← dos unidades exactas
+  "6.000"   → devuelve 6        ← seis unidades exactas
+  "50.000"  → devuelve 50       ← cincuenta unidades exactas
+  "100.000" → devuelve 100      ← cien unidades exactas
+  "200.000" → devuelve 200      ← doscientas unidades exactas
+  "0.500"   → devuelve 0.5      ← media unidad
+  "12.500"  → devuelve 12.5     ← doce y medio
+  "618.696" → devuelve 618.696  ← valor con decimales reales
+
+NUNCA modifiques, dividas ni multipliques el número leído. Cópialo exactamente.
+
+LISTA DE ${productosEsperados.length} PRODUCTOS ESPERADOS:
+${lista}
+
+INSTRUCCIONES — sigue este proceso en orden:
+PASO 1: Extrae TODOS los renglones de producto visibles en esta página.
+        No omitas ninguno. Cada fila de la tabla del documento es un renglón.
+        (Ignora cualquier marcatexto/subrayado — no afecta la extracción.)
+PASO 2: Para el nombre de cada producto: elige el más similar de la lista de arriba.
+        Usa el nombre EXACTO de la lista.
+PASO 3: Verifica que cada cantidad respete la regla del punto decimal antes de responder.
+Si esta página muestra el TOTAL del documento al pie, inclúyelo (misma regla de punto decimal). Si no aparece, usa null.
+Nota: solo omite un renglón si su cantidad es COMPLETAMENTE ilegible.
+
+Devuelve SOLO este JSON (sin markdown, sin texto extra):
 {
+  "total": numero_o_null,
   "renglones": [
     {
-      "producto": "nombre del insumo",
+      "producto": "nombre exacto de la lista",
       "cantidad": numero,
-      "unidad": "kg" | "lt" | "pz" | "mz" | "pq" | "cja" | "gr",
-      "costo": numero (costo unitario si es legible, si no 0),
-      "origen": "almacen" | "cocina",
-      "confianza": numero entre 0 y 1 (tu confianza en la lectura de esta fila)
+      "unidad": "pza"|"kg"|"lt",
+      "costo": numero,
+      "confianza": numero 0-1
     }
   ]
 }`;
+}
 
 interface RenglonExtraido {
   producto: string;
   cantidad: number;
-  unidad: string;
+  unidad: 'pza' | 'kg' | 'lt';
   costo: number;
-  origen: 'almacen' | 'cocina';
   confianza: number | null;
 }
 
@@ -66,6 +99,22 @@ Deno.serve(async (req) => {
       throw new Error('GEMINI_API_KEY no está configurada (supabase secrets set GEMINI_API_KEY=...).');
     }
 
+    // Obtiene la requisicion_id de la sesión para buscar los productos de Foodbot.
+    const { data: session, error: sessErr } = await admin
+      .from('capture_sessions')
+      .select('requisicion_id')
+      .eq('id', sessionId)
+      .single();
+    if (sessErr || !session) throw new Error('No se encontró la sesión.');
+
+    // Lista de productos canónicos del Excel de Foodbot — se le pasa a Gemini
+    // para que use esos nombres exactos en lugar de transcribir libremente.
+    const { data: foodbotRows } = await admin
+      .from('renglones_foodbot')
+      .select('producto')
+      .eq('requisicion_id', session.requisicion_id);
+    const productosEsperados = (foodbotRows ?? []).map((r: { producto: string }) => r.producto);
+
     const { data: fotos, error: fotosErr } = await admin
       .from('fotos_requisicion')
       .select('*')
@@ -74,51 +123,110 @@ Deno.serve(async (req) => {
     if (fotosErr) throw fotosErr;
     if (!fotos || fotos.length === 0) throw new Error('No hay fotos sin procesar para esta sesión.');
 
-    const imageParts = [];
+    const prompt = buildPrompt(productosEsperados);
+
+    // Schema estricto: fuerza a Gemini a devolver tipos correctos (números como
+    // NUMBER, enums cerrados). Reduce alucinaciones de formato.
+    const responseSchema = {
+      type: 'OBJECT',
+      properties: {
+        total: { type: 'NUMBER', nullable: true },
+        renglones: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              producto: { type: 'STRING' },
+              cantidad: { type: 'NUMBER' },
+              unidad: { type: 'STRING', enum: ['pza', 'kg', 'lt'] },
+              costo: { type: 'NUMBER' },
+              confianza: { type: 'NUMBER' },
+            },
+            required: ['producto', 'cantidad', 'unidad'],
+          },
+        },
+      },
+      required: ['renglones'],
+    };
+
+    // Simplifica cantidades sin decimales significativos: 2.000 → 2, 618.696 → 618.696
+    function simplificarCantidad(raw: number): number {
+      return Math.abs(raw - Math.round(raw)) < 0.0005 ? Math.round(raw) : raw;
+    }
+
+    // UNA llamada a Gemini POR FOTO: menos contenido por llamada = mayor
+    // precisión por renglón y mejor cobertura (evita truncamiento en docs largos).
+    const todosRenglones: ReturnType<typeof normalizarRenglon>[] = [];
+    let totalDocumento: number | null = null;
+
+    function normalizarRenglon(r: RenglonExtraido) {
+      return {
+        producto: r.producto.trim(),
+        cantidad: simplificarCantidad(Number(r.cantidad) || 0),
+        unidad: (['pza', 'kg', 'lt'].includes(r.unidad) ? r.unidad : 'pza') as RenglonExtraido['unidad'],
+        costo: simplificarCantidad(Number(r.costo) || 0),
+        // marcatextos suspendido: origen/entregado se asignan en la revisión
+        origen: 'almacen' as const,
+        entregado: true,
+        confianza: typeof r.confianza === 'number' ? r.confianza : null,
+      };
+    }
+
     for (const foto of fotos) {
       const { data: blob, error: dlErr } = await admin.storage.from('requisicion-fotos').download(foto.url_storage);
       if (dlErr || !blob) continue;
       const bytes = new Uint8Array(await blob.arrayBuffer());
       const base64 = btoa(bytes.reduce((acc, b) => acc + String.fromCharCode(b), ''));
-      imageParts.push({ inlineData: { mimeType: blob.type || 'image/jpeg', data: base64 } });
+      const imagePart = { inlineData: { mimeType: blob.type || 'image/jpeg', data: base64 } };
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [imagePart, { text: prompt }] }],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema,
+              thinkingConfig: { thinkingBudget: 8192 },
+              // Resolución alta: evita que Gemini comprima la imagen y pierda
+              // detalle en tablas densas (números pequeños, renglones juntos).
+              mediaResolution: 'MEDIA_RESOLUTION_HIGH',
+            },
+          }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`Gemini respondió ${response.status}: ${await response.text()}`);
+      }
+      const result = await response.json();
+      const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) continue;
+
+      const parsed = JSON.parse(text) as { renglones: RenglonExtraido[]; total?: number | null };
+      const renglonesPagina = (parsed.renglones || [])
+        .filter((r) => r && typeof r.producto === 'string' && r.producto.trim())
+        .map(normalizarRenglon);
+      todosRenglones.push(...renglonesPagina);
+
+      // El total suele estar solo en la última página — toma el primero no-nulo.
+      if (totalDocumento === null && typeof parsed.total === 'number' && parsed.total > 0) {
+        totalDocumento = parsed.total;
+      }
     }
-    if (imageParts.length === 0) throw new Error('No se pudieron descargar las fotos subidas.');
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [...imageParts, { text: PROMPT_OCR }] }],
-          generationConfig: { responseMimeType: 'application/json' },
-        }),
-      },
-    );
-    if (!response.ok) {
-      throw new Error(`Gemini respondió ${response.status}: ${await response.text()}`);
-    }
-    const result = await response.json();
-    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('Gemini no devolvió contenido interpretable.');
-
-    const parsed = JSON.parse(text) as { renglones: RenglonExtraido[] };
-    const renglones = (parsed.renglones || [])
-      .filter((r) => r && typeof r.producto === 'string' && r.producto.trim())
-      .map((r) => ({
-        producto: r.producto.trim(),
-        cantidad: Number(r.cantidad) || 0,
-        unidad: (['kg', 'lt', 'pz', 'mz', 'pq', 'cja', 'gr'].includes(r.unidad) ? r.unidad : 'pz') as RenglonExtraido['unidad'],
-        costo: Number(r.costo) || 0,
-        origen: r.origen === 'cocina' ? 'cocina' : 'almacen',
-        confianza: typeof r.confianza === 'number' ? r.confianza : null,
-      }));
-
+    const renglones = todosRenglones;
     if (renglones.length === 0) throw new Error('Gemini no extrajo ningún renglón resaltado de las fotos.');
+
+    // Validación de cordura: si el total es más de 20× la suma calculada por renglones,
+    // Gemini probablemente leyó mal el separador decimal — lo descartamos.
+    const sumaCalculada = renglones.reduce((s, r) => s + r.cantidad * r.costo, 0);
+    const total = totalDocumento !== null && (sumaCalculada === 0 || totalDocumento <= sumaCalculada * 20) ? totalDocumento : null;
 
     await admin
       .from('capture_sessions')
-      .update({ estatus: 'listo_para_revision', extraccion: { renglones }, error_mensaje: null })
+      .update({ estatus: 'listo_para_revision', extraccion: { renglones, ...(total !== null && { total }) }, error_mensaje: null })
       .eq('id', sessionId);
     await admin.from('fotos_requisicion').update({ procesada: true }).eq('session_id', sessionId).eq('procesada', false);
 
@@ -126,8 +234,6 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Error inesperado procesando las fotos.';
     if (sessionId) {
-      // Revierte a 'fotos_recibidas' para permitir reintentar procesar-vision
-      // manualmente; error_mensaje queda visible en el modal de captura.
       await admin.from('capture_sessions').update({ estatus: 'fotos_recibidas', error_mensaje: message }).eq('id', sessionId);
     }
     return json({ error: message }, 500);

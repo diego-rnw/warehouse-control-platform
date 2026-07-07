@@ -1,6 +1,6 @@
-export type Unidad = 'kg' | 'lt' | 'pz' | 'mz' | 'pq' | 'cja' | 'gr';
+export type Unidad = 'pza' | 'kg' | 'lt';
 export type Origen = 'almacen' | 'cocina';
-export type MatchStatus = 'ok' | 'diferencia' | 'no_encontrado' | 'ajustado';
+export type MatchStatus = 'ok' | 'diferencia' | 'no_encontrado' | 'ajustado' | 'no_entregado';
 export type RequisicionEstatus = 'pendiente_captura' | 'conciliada' | 'con_ajuste' | 'con_diferencias';
 export type CaptureEstatus =
   | 'esperando_fotos'
@@ -35,6 +35,8 @@ export interface ConciliacionRow {
   costo: number;
   unidad: Unidad;
   origen: Origen;
+  entregado: boolean;
+  repartidor: string | null;
   confianza_ocr: number | null;
   match_status: MatchStatus;
   cantidad_ajustada: number | null;
@@ -64,6 +66,20 @@ export interface Ajuste {
   creado_en: string;
 }
 
+// SUPABASE: tabla sucursales
+export interface Sucursal {
+  id: string;
+  nombre: string;
+  activa: boolean;
+}
+
+// SUPABASE: tabla personal_reparto
+export interface PersonalReparto {
+  id: string;
+  nombre: string;
+  activo: boolean;
+}
+
 // SUPABASE: tabla capture_sessions
 export interface CaptureSession {
   id: string;
@@ -71,7 +87,7 @@ export interface CaptureSession {
   estatus: CaptureEstatus;
   expira_en: string;
   creado_en: string;
-  extraccion: { renglones: RenglonExtraido[] } | null;
+  extraccion: { renglones: RenglonExtraido[]; total?: number } | null;
   error_mensaje: string | null;
 }
 
@@ -81,6 +97,7 @@ export interface RenglonExtraido {
   unidad: Unidad;
   costo: number;
   origen: Origen;
+  entregado: boolean;
   confianza: number | null;
 }
 
@@ -92,5 +109,7 @@ export interface ReviewRow {
   unidad: Unidad;
   costo: string;
   origen: Origen;
+  entregado: boolean;
+  repartidor: string;
   confianza: number | null;
 }

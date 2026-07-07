@@ -1,5 +1,5 @@
 export function formatMoney(value: number): string {
-  return '$' + value.toLocaleString('es-MX', { maximumFractionDigits: 0 });
+  return '$' + value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export function formatCantidad(value: number, unidad?: string): string {

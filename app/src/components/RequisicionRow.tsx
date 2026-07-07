@@ -71,11 +71,13 @@ export default function RequisicionRow({ req, renglonesFoodbot, renglones, ajust
                 <thead>
                   <tr style={{ background: 'var(--well)', borderBottom: '1px solid var(--divider-2)' }}>
                     <th style={{ textAlign: 'left', padding: '8px 20px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Producto</th>
-                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Cant. Reparto</th>
                     <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Cant. Foodbot</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Cant. Reparto</th>
                     <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Unidad</th>
                     <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Costo</th>
                     <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Origen</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Repartidor</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Entregado</th>
                     <th style={{ textAlign: 'left', padding: '8px 20px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Estado / Ajuste</th>
                   </tr>
                 </thead>
@@ -83,16 +85,24 @@ export default function RequisicionRow({ req, renglonesFoodbot, renglones, ajust
                   {renglones.map((rl) => (
                     <tr key={rl.renglon_id} style={rowBg(rl.match_status)}>
                       <td style={{ padding: '10px 20px', fontSize: 13, color: 'var(--t2)', fontWeight: 600 }}>{rl.producto}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: 13, color: 'var(--t3)', fontWeight: 700 }}>{rl.cantidad_reparto}</td>
                       <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: rl.cantidad_foodbot !== null && rl.cantidad_foodbot !== rl.cantidad_reparto ? '#E84926' : 'var(--t7)' }}>
                           {rl.cantidad_foodbot ?? '—'}
                         </span>
                       </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: 13, color: 'var(--t3)', fontWeight: 700 }}>{rl.cantidad_reparto}</td>
                       <td style={{ padding: '10px 12px', fontSize: 11, color: 'var(--t6)' }}>{rl.unidad}</td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontSize: 12, color: 'var(--t6)' }}>${rl.costo}</td>
                       <td style={{ padding: '10px 12px' }}>
                         <span style={origenChipStyle(rl.origen)}>{origenLabel(rl.origen)}</span>
+                      </td>
+                      <td style={{ padding: '10px 12px', fontSize: 12, color: rl.repartidor ? 'var(--t3)' : 'var(--t8)', fontWeight: 600 }}>
+                        {rl.repartidor ?? '—'}
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: rl.entregado ? 'var(--chip-ok-tx)' : '#E84926' }}>
+                          {rl.entregado ? '✓ ENTREGADO' : '✕ NO ENTREGADO'}
+                        </span>
                       </td>
                       <td style={{ padding: '10px 20px' }}>
                         <AdjustmentForm row={rl} historial={ajustesByRenglon.get(rl.renglon_id) ?? []} onSaved={onAjusteSaved} />

@@ -45,6 +45,7 @@ export const MATCH_LABELS: Record<MatchStatus, string> = {
   diferencia: '⚠ DIFERENCIA',
   no_encontrado: '? NO EN FOODBOT',
   ajustado: '✓ AJUSTADO',
+  no_entregado: '— NO ENTREGADO',
 };
 
 export const MATCH_CHIP_KIND: Record<MatchStatus, ChipKind> = {
@@ -52,6 +53,7 @@ export const MATCH_CHIP_KIND: Record<MatchStatus, ChipKind> = {
   diferencia: 'warn',
   no_encontrado: 'pur',
   ajustado: 'ok',
+  no_entregado: 'mut',
 };
 
 export function matchChipStyle(status: MatchStatus): CSSProperties {

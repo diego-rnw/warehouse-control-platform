@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Ajuste, ConciliacionRow, DashboardRow, RenglonFoodbot } from '../lib/types';
+import type { Ajuste, ConciliacionRow, DashboardRow, RenglonFoodbot, Sucursal } from '../lib/types';
 import { useAuth } from './AuthContext';
 
 interface DataCtx {
@@ -8,6 +8,7 @@ interface DataCtx {
   conciliacionRows: ConciliacionRow[];
   renglonesFoodbot: RenglonFoodbot[];
   ajustes: Ajuste[];
+  sucursales: Sucursal[];
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -21,6 +22,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [conciliacionRows, setConciliacionRows] = useState<ConciliacionRow[]>([]);
   const [renglonesFoodbot, setRenglonesFoodbot] = useState<RenglonFoodbot[]>([]);
   const [ajustes, setAjustes] = useState<Ajuste[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,29 +31,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const [
-        // SUPABASE: SELECT * FROM v_dashboard — una fila por requisición con
-        // estatus siempre derivado e importe/ajustes agregados.
         { data: dash, error: dashErr },
-        // SUPABASE: SELECT * FROM v_conciliacion — una fila por renglón de reparto con su match.
         { data: conc, error: concErr },
-        // SUPABASE: SELECT * FROM renglones_foodbot — lo esperado según Foodbot (Fase 1).
         { data: fb, error: fbErr },
-        // SUPABASE: SELECT * FROM ajustes ORDER BY creado_en — historial completo por renglón.
         { data: adj, error: adjErr },
+        { data: suc, error: sucErr },
       ] = await Promise.all([
         supabase.from('v_dashboard').select('*').order('fecha', { ascending: false }),
         supabase.from('v_conciliacion').select('*'),
         supabase.from('renglones_foodbot').select('*'),
         supabase.from('ajustes').select('*').order('creado_en', { ascending: true }),
+        supabase.from('sucursales').select('id, nombre, activa').eq('activa', true).order('nombre'),
       ]);
       if (dashErr) throw dashErr;
       if (concErr) throw concErr;
       if (fbErr) throw fbErr;
       if (adjErr) throw adjErr;
+      if (sucErr) throw sucErr;
       setDashboardRows(dash ?? []);
       setConciliacionRows(conc ?? []);
       setRenglonesFoodbot(fb ?? []);
       setAjustes(adj ?? []);
+      setSucursales(suc ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudieron cargar las requisiciones.');
     } finally {
@@ -64,7 +65,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [session, refresh]);
 
   return (
-    <DataContext.Provider value={{ dashboardRows, conciliacionRows, renglonesFoodbot, ajustes, isLoading, error, refresh }}>
+    <DataContext.Provider value={{ dashboardRows, conciliacionRows, renglonesFoodbot, ajustes, sucursales, isLoading, error, refresh }}>
       {children}
     </DataContext.Provider>
   );
