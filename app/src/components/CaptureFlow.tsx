@@ -127,18 +127,23 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
       if (row.estatus === 'listo_para_revision' && row.extraccion?.renglones) {
         if (typeof row.extraccion.total === 'number') setDocTotal(row.extraccion.total);
         setReviewRows((prev) => {
-          if (prev.length > 0) return prev; // ya cargados — no sobreescribir ediciones del usuario
-          return row.extraccion!.renglones.map((r, i) => ({
-            id: `nr-${i}-${Date.now()}`,
-            producto: r.producto,
-            cantidad: String(r.cantidad),
-            unidad: r.unidad,
-            costo: String(r.costo),
-            origen: r.origen,
-            entregado: r.entregado !== false,
-            repartidor: '',
-            confianza: r.confianza,
-          }));
+          // Merge: conserva las filas existentes (con ediciones del usuario) y
+          // agrega solo los productos nuevos de rondas adicionales de fotos.
+          const existentes = new Set(prev.map((r) => r.producto.trim().toLowerCase()));
+          const nuevas = row.extraccion!.renglones
+            .filter((r) => !existentes.has(r.producto.trim().toLowerCase()))
+            .map((r, i) => ({
+              id: `nr-${prev.length + i}-${Date.now()}`,
+              producto: r.producto,
+              cantidad: String(r.cantidad),
+              unidad: r.unidad,
+              costo: String(r.costo),
+              origen: r.origen,
+              entregado: r.entregado !== false,
+              repartidor: '',
+              confianza: r.confianza,
+            }));
+          return nuevas.length > 0 ? [...prev, ...nuevas] : prev;
         });
       }
     }

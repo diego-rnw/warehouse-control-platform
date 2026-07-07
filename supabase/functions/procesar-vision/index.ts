@@ -99,10 +99,10 @@ Deno.serve(async (req) => {
       throw new Error('GEMINI_API_KEY no está configurada (supabase secrets set GEMINI_API_KEY=...).');
     }
 
-    // Obtiene la requisicion_id de la sesión para buscar los productos de Foodbot.
+    // Obtiene la sesión (requisicion_id + extracción previa para merge multi-ronda).
     const { data: session, error: sessErr } = await admin
       .from('capture_sessions')
-      .select('requisicion_id')
+      .select('requisicion_id, extraccion')
       .eq('id', sessionId)
       .single();
     if (sessErr || !session) throw new Error('No se encontró la sesión.');
@@ -224,9 +224,22 @@ Deno.serve(async (req) => {
     const sumaCalculada = renglones.reduce((s, r) => s + r.cantidad * r.costo, 0);
     const total = totalDocumento !== null && (sumaCalculada === 0 || totalDocumento <= sumaCalculada * 20) ? totalDocumento : null;
 
+    // MERGE multi-ronda: si el celular subió fotos en varias tandas, la extracción
+    // previa ya tiene renglones — se agregan solo los productos nuevos (sin duplicar).
+    const previa = (session.extraccion ?? null) as { renglones?: typeof renglones; total?: number } | null;
+    const previos = previa?.renglones ?? [];
+    const nombresPrevios = new Set(previos.map((r) => r.producto.toLowerCase()));
+    const nuevos = renglones.filter((r) => !nombresPrevios.has(r.producto.toLowerCase()));
+    const renglonesFinales = [...previos, ...nuevos];
+    const totalFinal = total ?? previa?.total ?? null;
+
     await admin
       .from('capture_sessions')
-      .update({ estatus: 'listo_para_revision', extraccion: { renglones, ...(total !== null && { total }) }, error_mensaje: null })
+      .update({
+        estatus: 'listo_para_revision',
+        extraccion: { renglones: renglonesFinales, ...(totalFinal !== null && { total: totalFinal }) },
+        error_mensaje: null,
+      })
       .eq('id', sessionId);
     await admin.from('fotos_requisicion').update({ procesada: true }).eq('session_id', sessionId).eq('procesada', false);
 
