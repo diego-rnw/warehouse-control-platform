@@ -28,7 +28,7 @@ export default function Nav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { userLabel, logout } = useAuth();
+  const { userLabel, logout, isSuperadmin } = useAuth();
   const { dashboardRows } = useData();
 
   const diffBadgeCount = dashboardRows.filter((r) => r.estatus === 'con_diferencias').length;
@@ -86,6 +86,11 @@ export default function Nav() {
         <button onClick={() => navigate('/comparativo')} style={navBtnStyle(location.pathname === '/comparativo')}>
           COMPARATIVO
         </button>
+        {isSuperadmin && (
+          <button onClick={() => navigate('/admin')} style={navBtnStyle(location.pathname === '/admin')}>
+            ★ ADMIN
+          </button>
+        )}
       </nav>
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
         <button

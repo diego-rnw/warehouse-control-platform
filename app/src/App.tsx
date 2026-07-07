@@ -9,9 +9,10 @@ import Dashboard from './pages/Dashboard';
 import Requisiciones from './pages/Requisiciones';
 import Comparativo from './pages/Comparativo';
 import CapturaMovil from './pages/CapturaMovil';
+import Admin from './pages/Admin';
 
 function AppRoutes() {
-  const { session, isLoading } = useAuth();
+  const { session, isLoading, isSuperadmin } = useAuth();
 
   if (isLoading) {
     return (
@@ -38,6 +39,7 @@ function AppRoutes() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/requisiciones" element={<Requisiciones />} />
               <Route path="/comparativo" element={<Comparativo />} />
+              {isSuperadmin && <Route path="/admin" element={<Admin />} />}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Layout>

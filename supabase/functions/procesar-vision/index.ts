@@ -203,6 +203,18 @@ Deno.serve(async (req) => {
         throw new Error(`Gemini respondió ${response.status}: ${await response.text()}`);
       }
       const result = await response.json();
+
+      // Registro de consumo de API (tokens reportados por Gemini en cada respuesta)
+      const usage = result?.usageMetadata ?? {};
+      await admin.from('api_usage_log').insert({
+        session_id: sessionId,
+        modelo: GEMINI_MODEL,
+        tokens_input: usage.promptTokenCount ?? 0,
+        tokens_output: usage.candidatesTokenCount ?? 0,
+        tokens_think: usage.thoughtsTokenCount ?? 0,
+        ok: true,
+      }).then(() => {}, () => {}); // logging best-effort, nunca rompe el flujo
+
       const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) continue;
 

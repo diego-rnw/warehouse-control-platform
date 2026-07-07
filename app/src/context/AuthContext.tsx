@@ -6,6 +6,7 @@ interface AuthCtx {
   session: Session | null;
   isLoading: boolean;
   userLabel: string;
+  isSuperadmin: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
 }
@@ -48,9 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const userLabel = session?.user?.email || 'Almacén Central';
+  const isSuperadmin = session?.user?.app_metadata?.role === 'superadmin';
 
   return (
-    <AuthContext.Provider value={{ session, isLoading, userLabel, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ session, isLoading, userLabel, isSuperadmin, login, logout }}>{children}</AuthContext.Provider>
   );
 }
 
