@@ -23,43 +23,45 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
 function buildPrompt(productosEsperados: string[]): string {
   const lista = productosEsperados.map((p, i) => `${i + 1}. ${p}`).join('\n');
-  return `Extrae datos de UNA página de una hoja de requisición de insumos de restaurante.
-Es posible que esta página no contenga todos los productos de la lista — extrae solo los que aparezcan resaltados EN ESTA imagen.
+  return `Eres un transcriptor OCR de tablas. Vas a transcribir UNA página de una hoja de requisición de insumos de restaurante (export de Foodbot impreso).
 
-COLUMNAS A LEER (en ese orden de prioridad):
-- Cantidad: columna "Cantidad enviada" (última columna de cantidad)
-- Costo: columna "Precio enviado"
-- Unidad: columna "Unidad base" (pz/kg/lt junto a la cantidad)
+═══ CÓMO TRABAJAR ═══
+Transcribe la tabla FILA POR FILA, en el orden en que aparecen de arriba a abajo.
+Cada fila de producto de la tabla = un elemento del arreglo "renglones".
+NO decidas qué filas incluir: TODAS las filas de producto visibles se transcriben.
+Ignora por completo colores, marcatexto o subrayados — no significan nada.
+Ignora filas que no sean productos (encabezados, subtotales, impuestos).
 
-FORMATO DE NÚMEROS — LEE ESTO CON MÁXIMA ATENCIÓN:
-Todos los números en el documento tienen el formato X.YYY (parte entera PUNTO tres decimales).
-El punto (.) es SIEMPRE separador decimal. Nunca es separador de miles.
-La parte entera X puede ser cualquier número: 1, 2, 6, 12, 50, 100, 200, 618...
+═══ QUÉ COLUMNA LEER PARA CADA CAMPO ═══
+La tabla tiene varias columnas de precio/cantidad. Usa EXACTAMENTE estas:
+- "cantidad" ← columna "Cantidad enviada" (la ÚLTIMA columna de cantidad, a la derecha)
+- "costo"    ← columna "Precio enviado"
+- "unidad"   ← el texto pz/kg/lt que acompaña a la cantidad (ej: "2.000 pz" → unidad pza)
+NO uses "Cantidad solicitada" ni "Precio solicitado" (columnas de la izquierda).
 
-Tabla de lectura obligatoria:
-  "2.000"   → devuelve 2        ← dos unidades exactas
-  "6.000"   → devuelve 6        ← seis unidades exactas
-  "50.000"  → devuelve 50       ← cincuenta unidades exactas
-  "100.000" → devuelve 100      ← cien unidades exactas
-  "200.000" → devuelve 200      ← doscientas unidades exactas
-  "0.500"   → devuelve 0.5      ← media unidad
-  "12.500"  → devuelve 12.5     ← doce y medio
-  "618.696" → devuelve 618.696  ← valor con decimales reales
+═══ FORMATO DE NÚMEROS ═══
+El punto (.) es SIEMPRE separador decimal. NUNCA de miles.
+Formato típico: X.YYY (entero + punto + tres decimales).
+  "2.000" → 2   |   "6.000" → 6   |   "50.000" → 50   |   "100.000" → 100
+  "0.500" → 0.5 |   "12.500" → 12.5   |   "618.696" → 618.696
+Lee cada número dígito por dígito y cópialo exacto. No dividas, no multipliques, no redondees.
 
-NUNCA modifiques, dividas ni multipliques el número leído. Cópialo exactamente.
-
-LISTA DE ${productosEsperados.length} PRODUCTOS ESPERADOS:
+═══ NOMBRES DE PRODUCTO ═══
+Esta requisición tiene ${productosEsperados.length} productos registrados en el sistema:
 ${lista}
 
-INSTRUCCIONES — sigue este proceso en orden:
-PASO 1: Extrae TODOS los renglones de producto visibles en esta página.
-        No omitas ninguno. Cada fila de la tabla del documento es un renglón.
-        (Ignora cualquier marcatexto/subrayado — no afecta la extracción.)
-PASO 2: Para el nombre de cada producto: elige el más similar de la lista de arriba.
-        Usa el nombre EXACTO de la lista.
-PASO 3: Verifica que cada cantidad respete la regla del punto decimal antes de responder.
-Si esta página muestra el TOTAL del documento al pie, inclúyelo (misma regla de punto decimal). Si no aparece, usa null.
-Nota: solo omite un renglón si su cantidad es COMPLETAMENTE ilegible.
+Para cada fila transcrita, asigna el nombre de esta lista que corresponda al texto de la fila
+(es el mismo documento, los nombres deben coincidir casi exactamente).
+Usa el nombre EXACTO de la lista, carácter por carácter.
+Solo si una fila no corresponde a NINGÚN producto de la lista, transcribe su texto tal cual.
+
+═══ VERIFICACIÓN ANTES DE RESPONDER ═══
+1. ¿Transcribiste TODAS las filas de producto de la imagen? Cuenta las filas visibles y compara.
+2. ¿Cada cantidad respeta la regla del punto decimal?
+3. ¿Cada nombre está copiado exacto de la lista?
+Asigna "confianza" honesta por fila: 1.0 = lectura perfecta, <0.75 = valor dudoso.
+Si esta página muestra el TOTAL del documento al pie, inclúyelo (misma regla decimal); si no, usa null.
+Solo omite una fila si su cantidad es COMPLETAMENTE ilegible.
 
 Devuelve SOLO este JSON (sin markdown, sin texto extra):
 {

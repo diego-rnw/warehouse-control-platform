@@ -141,6 +141,9 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
               origen: r.origen,
               entregado: r.entregado !== false,
               repartidor: '',
+              tieneCaducidad: false,
+              lote: '',
+              caducidad: '',
               confianza: r.confianza,
             }));
           return nuevas.length > 0 ? [...prev, ...nuevas] : prev;
@@ -208,7 +211,7 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
   }, [reviewRows, productosEsperados]);
 
   function addMissingRow(producto: string) {
-    setReviewRows((rows) => [...rows, { id: 'nr-' + Date.now(), producto, cantidad: '1', unidad: 'pza', costo: '0', origen: 'almacen', entregado: false, repartidor: '', confianza: null }]);
+    setReviewRows((rows) => [...rows, { id: 'nr-' + Date.now(), producto, cantidad: '1', unidad: 'pza', costo: '0', origen: 'almacen', entregado: false, repartidor: '', tieneCaducidad: false, lote: '', caducidad: '', confianza: null }]);
   }
 
   function updateRow(id: string, field: keyof ReviewRow, value: string) {
@@ -220,7 +223,7 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
   }
 
   function addRow() {
-    setReviewRows((rows) => [...rows, { id: 'nr-' + Date.now(), producto: '', cantidad: '1', unidad: 'pza', costo: '0', origen: 'almacen', entregado: true, repartidor: '', confianza: null }]);
+    setReviewRows((rows) => [...rows, { id: 'nr-' + Date.now(), producto: '', cantidad: '1', unidad: 'pza', costo: '0', origen: 'almacen', entregado: true, repartidor: '', tieneCaducidad: false, lote: '', caducidad: '', confianza: null }]);
   }
 
   async function saveCaptura() {
@@ -231,6 +234,11 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
     }
     if (reviewRows.length === 0) {
       setSaveError('Debes capturar al menos un renglón.');
+      return;
+    }
+    const sinCaducidad = reviewRows.filter((r) => r.tieneCaducidad && !r.caducidad);
+    if (sinCaducidad.length > 0) {
+      setSaveError(`La fecha de caducidad es obligatoria cuando el producto tiene caducidad. Falta en: ${sinCaducidad.map((r) => r.producto || '(sin nombre)').join(', ')}.`);
       return;
     }
     const confirmed = window.confirm(
@@ -252,6 +260,9 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
           origen: r.origen,
           entregado: r.entregado,
           repartidor: r.repartidor || null,
+          tiene_caducidad: r.tieneCaducidad,
+          lote: r.tieneCaducidad ? r.lote.trim() || null : null,
+          caducidad: r.tieneCaducidad ? r.caducidad : null,
           confianza_ocr: r.confianza,
         })),
       );
@@ -439,6 +450,7 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
                 <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Origen</th>
                 <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Repartidor</th>
                 <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Entregado</th>
+                <th style={{ textAlign: 'left', padding: '9px 10px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>¿Tiene caducidad?</th>
                 <th style={{ textAlign: 'center', padding: '9px 14px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Confianza</th>
                 <th style={{ width: 36 }}></th>
               </tr>
@@ -530,6 +542,40 @@ export default function CaptureFlow({ reqId, folio, sucursal, productosEsperados
                       <option value="si">ENTREGADO</option>
                       <option value="no">NO ENTREGADO</option>
                     </select>
+                  </td>
+                  <td style={{ padding: '5px 10px', minWidth: 150 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: row.tieneCaducidad ? 'var(--t2)' : 'var(--t7)' }}>
+                      <input
+                        type="checkbox"
+                        checked={row.tieneCaducidad}
+                        onChange={(e) => setReviewRows((rows) => rows.map((r) => (r.id === row.id ? { ...r, tieneCaducidad: e.target.checked } : r)))}
+                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: '#FFCD02' }}
+                      />
+                      Sí
+                    </label>
+                    {row.tieneCaducidad && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 7 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <label style={{ fontSize: 8, color: 'var(--t7)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Lote (opcional)</label>
+                          <input
+                            type="text"
+                            value={row.lote}
+                            onChange={(e) => setReviewRows((rows) => rows.map((r) => (r.id === row.id ? { ...r, lote: e.target.value } : r)))}
+                            placeholder="Ej: L-2408"
+                            style={{ background: 'var(--well)', border: '1px solid var(--border)', color: 'var(--t1)', padding: '5px 8px', fontSize: 11, width: 130 }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <label style={{ fontSize: 8, color: row.caducidad ? 'var(--t7)' : '#E84926', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Fecha caducidad *</label>
+                          <input
+                            type="date"
+                            value={row.caducidad}
+                            onChange={(e) => setReviewRows((rows) => rows.map((r) => (r.id === row.id ? { ...r, caducidad: e.target.value } : r)))}
+                            style={{ background: 'var(--well)', border: `1px solid ${row.caducidad ? 'var(--border)' : '#E84926'}`, color: 'var(--t1)', padding: '5px 8px', fontSize: 11, width: 130 }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '7px 14px', textAlign: 'center' }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: confianzaColor(row.confianza) }}>{formatConfianza(row.confianza)}</span>

@@ -78,6 +78,7 @@ export default function RequisicionRow({ req, renglonesFoodbot, renglones, ajust
                     <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Origen</th>
                     <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Repartidor</th>
                     <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Entregado</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Caducidad</th>
                     <th style={{ textAlign: 'left', padding: '8px 20px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Estado / Ajuste</th>
                   </tr>
                 </thead>
@@ -103,6 +104,16 @@ export default function RequisicionRow({ req, renglonesFoodbot, renglones, ajust
                         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: rl.entregado ? 'var(--chip-ok-tx)' : '#E84926' }}>
                           {rl.entregado ? '✓ ENTREGADO' : '✕ NO ENTREGADO'}
                         </span>
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        {rl.tiene_caducidad ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)' }}>{rl.caducidad ?? '—'}</span>
+                            {rl.lote && <span style={{ fontSize: 10, color: 'var(--t7)' }}>Lote: {rl.lote}</span>}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: 11, color: 'var(--t8)' }}>—</span>
+                        )}
                       </td>
                       <td style={{ padding: '10px 20px' }}>
                         <AdjustmentForm row={rl} historial={ajustesByRenglon.get(rl.renglon_id) ?? []} onSaved={onAjusteSaved} />

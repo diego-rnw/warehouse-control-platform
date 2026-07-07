@@ -37,6 +37,9 @@ export interface ConciliacionRow {
   origen: Origen;
   entregado: boolean;
   repartidor: string | null;
+  tiene_caducidad: boolean;
+  lote: string | null;
+  caducidad: string | null; // YYYY-MM-DD
   confianza_ocr: number | null;
   match_status: MatchStatus;
   cantidad_ajustada: number | null;
@@ -111,5 +114,8 @@ export interface ReviewRow {
   origen: Origen;
   entregado: boolean;
   repartidor: string;
+  tieneCaducidad: boolean;
+  lote: string;
+  caducidad: string; // YYYY-MM-DD, obligatorio si tieneCaducidad
   confianza: number | null;
 }
