@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useData } from '../context/DataContext';
 import { supabase } from '../lib/supabase';
 import { validateExcelFile, parseFoodbotExcel } from '../lib/excel';
+import type { ParsedFoodbotExcel } from '../lib/excel';
+import { formatMoney, formatCantidad } from '../lib/format';
 import RequisicionRow from '../components/RequisicionRow';
 import CaptureFlow from '../components/CaptureFlow';
 import type { Ajuste } from '../lib/types';
@@ -16,6 +18,10 @@ export default function Requisiciones() {
   const [lastUpload, setLastUpload] = useState<{ folio: string; count: number } | null>(null);
   const [expandedReqId, setExpandedReqId] = useState<string | null>(null);
   const [captureReqId, setCaptureReqId] = useState<string | null>(null);
+  // Vista previa del Excel parseado — se confirma antes de insertar en DB
+  const [preview, setPreview] = useState<ParsedFoodbotExcel | null>(null);
+  const [previewSucursal, setPreviewSucursal] = useState('');
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const allSucursales = useMemo(() => sucursales.map((s) => s.nombre), [sucursales]);
 
@@ -60,6 +66,7 @@ export default function Requisiciones() {
     return map;
   }, [ajustes]);
 
+  // Paso 1: parsear el archivo y mostrar vista previa (aún no toca la DB)
   async function handleExcelUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -90,38 +97,57 @@ export default function Requisiciones() {
         return;
       }
 
+      setPreview(parsed);
+      setPreviewSucursal(sucursalCanonica);
+      setUploadStatus('idle');
+    } catch (err) {
+      setUploadStatus('idle');
+      const msg = err instanceof Error ? err.message : '';
+      setUploadError(msg || 'No se pudo leer el archivo. Verifica que sea un export válido de Foodbot.');
+    } finally {
+      e.target.value = '';
+    }
+  }
+
+  // Paso 2: el usuario revisó la vista previa y confirma la carga
+  async function confirmUpload() {
+    if (!preview) return;
+    setIsConfirming(true);
+    setUploadError('');
+    try {
       const reqId = 'req-' + Array.from(crypto.getRandomValues(new Uint8Array(12))).map((b) => b.toString(16).padStart(2, '0')).join('');
 
       const { error: reqErr } = await supabase.from('requisiciones').insert({
         id: reqId,
-        folio: parsed.folio,
-        sucursal: sucursalCanonica,
-        fecha: parsed.fecha,
-        importe_total: parsed.importe_total,
+        folio: preview.folio,
+        sucursal: previewSucursal,
+        fecha: preview.fecha,
+        importe_total: preview.importe_total,
         estatus: 'pendiente_captura',
       });
       if (reqErr) {
         if (reqErr.code === '23505') {
-          throw new Error(`La orden de compra "${parsed.folio}" ya fue cargada anteriormente.`);
+          throw new Error(`La orden de compra "${preview.folio}" ya fue cargada anteriormente.`);
         }
         throw reqErr;
       }
 
       const { error: rowsErr } = await supabase.from('renglones_foodbot').insert(
-        parsed.rows.map((r) => ({ requisicion_id: reqId, producto: r.producto, cantidad: r.cantidad, costo: r.costo })),
+        preview.rows.map((r) => ({ requisicion_id: reqId, producto: r.producto, cantidad: r.cantidad, costo: r.costo })),
       );
       if (rowsErr) throw rowsErr;
 
       setUploadStatus('loaded');
-      setLastUpload({ folio: parsed.folio, count: parsed.rows.length });
+      setLastUpload({ folio: preview.folio, count: preview.rows.length });
       setUploadSucursal('');
+      setPreview(null);
       await refresh();
     } catch (err) {
-      setUploadStatus('idle');
       const msg = err instanceof Error ? err.message : '';
       setUploadError(msg || 'No se pudo crear la requisición. Verifica tu conexión e intenta de nuevo.');
+      setPreview(null);
     } finally {
-      e.target.value = '';
+      setIsConfirming(false);
     }
   }
 
@@ -230,6 +256,84 @@ export default function Requisiciones() {
           </div>
         )}
       </div>
+
+      {/* Vista previa del Excel antes de confirmar la carga */}
+      {preview && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.94)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: 'var(--surface)', border: '2px solid #FFCD02', width: '100%', maxWidth: 860, maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: '#FFCD02', padding: '14px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+              <div>
+                <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', color: '#000', textTransform: 'uppercase', marginBottom: 2 }}>
+                  VISTA PREVIA · ARCHIVO FOODBOT
+                </p>
+                <p style={{ fontSize: 15, fontWeight: 900, color: '#000', letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1.1 }}>Revisa antes de cargar</p>
+              </div>
+              <button onClick={() => setPreview(null)} style={{ background: 'rgba(0,0,0,0.12)', border: 'none', color: '#000', width: 32, height: 32, fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}>
+                ×
+              </button>
+            </div>
+
+            <div style={{ padding: '18px 22px', display: 'flex', gap: 28, flexWrap: 'wrap', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+              <div>
+                <p style={{ fontSize: 9, color: 'var(--t6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>Folio</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)' }}>{preview.folio}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: 9, color: 'var(--t6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>Sucursal</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)' }}>{previewSucursal}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: 9, color: 'var(--t6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>Fecha PO</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)' }}>{preview.fecha}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: 9, color: 'var(--t6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>Renglones</p>
+                <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)' }}>{preview.rows.length}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: 9, color: 'var(--t6)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>Importe total</p>
+                <p style={{ fontSize: 13, fontWeight: 900, color: '#FFCD02' }}>{formatMoney(preview.importe_total)}</p>
+              </div>
+            </div>
+
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: 'var(--well)', position: 'sticky', top: 0 }}>
+                    <th style={{ textAlign: 'center', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase', width: 40 }}>#</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Producto</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Cant. solicitada</th>
+                    <th style={{ textAlign: 'right', padding: '8px 20px', fontSize: 9, fontWeight: 700, color: 'var(--t8)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Precio enviado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.rows.map((r, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '7px 12px', fontSize: 10, color: 'var(--t9)', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{String(i + 1).padStart(2, '0')}</td>
+                      <td style={{ padding: '7px 12px', fontSize: 12, color: 'var(--t2)', fontWeight: 600 }}>{r.producto}</td>
+                      <td style={{ padding: '7px 12px', fontSize: 12, color: 'var(--t3)', fontWeight: 700, textAlign: 'right' }}>{formatCantidad(r.cantidad)}</td>
+                      <td style={{ padding: '7px 20px', fontSize: 12, color: 'var(--t6)', textAlign: 'right' }}>{formatMoney(r.costo)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ padding: '14px 22px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
+              <button onClick={() => setPreview(null)} style={{ background: 'transparent', border: '1px solid var(--border-in)', color: 'var(--t4)', padding: '11px 20px', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
+                CANCELAR
+              </button>
+              <button
+                onClick={confirmUpload}
+                disabled={isConfirming}
+                style={{ background: '#FFCD02', color: '#000', border: 'none', padding: '11px 26px', fontSize: 12, fontWeight: 900, letterSpacing: '0.08em', cursor: isConfirming ? 'not-allowed' : 'pointer', textTransform: 'uppercase', opacity: isConfirming ? 0.7 : 1 }}
+              >
+                {isConfirming ? 'CARGANDO…' : `CONFIRMAR CARGA — ${preview.rows.length} RENGLONES →`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {captureReqId && captureTarget && (
         <CaptureFlow
