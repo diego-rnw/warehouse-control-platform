@@ -21,6 +21,17 @@ export function validateExcelFile(file: File): string | null {
   return null;
 }
 
+// Convierte valores numéricos de Foodbot a number de forma robusta.
+// Formato del documento: coma = separador de millares, punto = decimal.
+//   "1,500.000" → 1500  |  "2.000" → 2  |  1500 (numérico) → 1500
+function parseFoodbotNumber(raw: unknown): number {
+  if (typeof raw === 'number') return raw;
+  if (typeof raw !== 'string') return NaN;
+  const cleaned = raw.replace(/[^0-9.,-]/g, '').replace(/,/g, '');
+  if (!cleaned) return NaN;
+  return Number(cleaned);
+}
+
 function parseFoodbotDate(raw: string): string {
   // Input: "Jul 2, 2026, 8:25 AM" → output: "2026-07-02"
   const d = new Date(raw);
@@ -81,15 +92,15 @@ export async function parseFoodbotExcel(file: File): Promise<ParsedFoodbotExcel>
 
     // Footer: fila "Total" al pie del documento (total con IVA precalculado por Foodbot)
     if (firstCell === 'Total') {
-      importe_total = Number(row[1]) || 0;
+      importe_total = parseFoodbotNumber(row[1]) || 0;
       continue;
     }
 
     // Saltar filas de resumen del footer (Monto del impuesto, Importe, etc.)
     if (!firstCell || firstCell === 'Monto del impuesto' || firstCell === 'Monto del descuento' || firstCell === 'Importe') continue;
 
-    const cantidad = Number(row[colCantidad]);
-    const costo = Number(row[colPrecio]);
+    const cantidad = parseFoodbotNumber(row[colCantidad]);
+    const costo = parseFoodbotNumber(row[colPrecio]);
     if (!Number.isFinite(cantidad) || !Number.isFinite(costo)) continue;
     if (cantidad === 0 && costo === 0) continue;
     rows.push({ producto: firstCell, cantidad, costo });

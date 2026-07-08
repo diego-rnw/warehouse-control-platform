@@ -39,11 +39,25 @@ La tabla tiene varias columnas de precio/cantidad. Usa EXACTAMENTE estas:
 - "unidad"   ← el texto pz/kg/lt que acompaña a la cantidad (ej: "2.000 pz" → unidad pza)
 NO uses "Cantidad solicitada" ni "Precio solicitado" (columnas de la izquierda).
 
-═══ FORMATO DE NÚMEROS ═══
-El punto (.) es SIEMPRE separador decimal. NUNCA de miles.
-Formato típico: X.YYY (entero + punto + tres decimales).
-  "2.000" → 2   |   "6.000" → 6   |   "50.000" → 50   |   "100.000" → 100
-  "0.500" → 0.5 |   "12.500" → 12.5   |   "618.696" → 618.696
+═══ FORMATO DE NÚMEROS — REGLA DE PUNTO Y COMA ═══
+En este documento (formato mexicano/US):
+  • El PUNTO (.) es SIEMPRE separador DECIMAL.
+  • La COMA (,) es SIEMPRE separador de MILLARES.
+Formato típico de una celda: [millares con coma][punto][tres decimales]
+
+Tabla de lectura obligatoria:
+  "2.000"      → 2       (dos — el .000 son decimales en cero)
+  "6.000"      → 6
+  "50.000"     → 50
+  "100.000"    → 100
+  "0.500"      → 0.5     (medio)
+  "12.500"     → 12.5
+  "618.696"    → 618.696
+  "1,500.000"  → 1500    (mil quinientos — la coma marca millares)
+  "2,350.500"  → 2350.5
+  "10,000.000" → 10000
+
+Distingue con cuidado el carácter: la coma (,) va pegada abajo, el punto (.) es un punto simple.
 Lee cada número dígito por dígito y cópialo exacto. No dividas, no multipliques, no redondees.
 
 ═══ NOMBRES DE PRODUCTO ═══
