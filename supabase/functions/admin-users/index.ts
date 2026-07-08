@@ -72,6 +72,15 @@ Deno.serve(async (req) => {
       return json({ ok: true, id: data.user?.id });
     }
 
+    if (body.action === 'delete') {
+      const { userId } = body;
+      if (!userId) return json({ error: 'Falta userId.' }, 400);
+      if (userId === caller.user.id) return json({ error: 'No puedes eliminar tu propia cuenta.' }, 400);
+      const { error } = await admin.auth.admin.deleteUser(userId);
+      if (error) throw error;
+      return json({ ok: true });
+    }
+
     if (body.action === 'toggle_ban') {
       const { userId, ban } = body;
       if (!userId) return json({ error: 'Falta userId.' }, 400);

@@ -154,6 +154,21 @@ export default function Admin() {
     await loadUsers();
   }
 
+  async function deleteUser(u: AdminUser) {
+    const msg = u.pendiente
+      ? `¿Eliminar la invitación de ${u.email}? El enlace de activación dejará de funcionar.`
+      : `¿Eliminar permanentemente la cuenta de ${u.email}? Esta acción no se puede deshacer.`;
+    if (!window.confirm(msg)) return;
+    const { data, error } = await supabase.functions.invoke('admin-users', {
+      body: { action: 'delete', userId: u.id },
+    });
+    if (error || data?.error) {
+      setUsersError(data?.error || error?.message || 'No se pudo eliminar el usuario.');
+      return;
+    }
+    await loadUsers();
+  }
+
   // ===== Sucursales =====
   const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [sucError, setSucError] = useState('');
@@ -386,16 +401,27 @@ export default function Admin() {
                         <td style={{ ...td, fontSize: 12, color: 'var(--t7)' }}>
                           {u.lastSignIn ? new Date(u.lastSignIn).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : 'Nunca'}
                         </td>
-                        <td style={{ ...td, textAlign: 'right' }}>
+                        <td style={{ ...td, textAlign: 'right', whiteSpace: 'nowrap' }}>
                           {u.id === session.user.id ? (
                             <span style={{ fontSize: 10, color: 'var(--t8)', fontWeight: 700, letterSpacing: '0.08em' }}>TÚ</span>
                           ) : (
-                            <button
-                              onClick={() => toggleBan(u)}
-                              style={{ background: 'transparent', border: '1px solid var(--border-in)', color: u.banned ? 'var(--chip-ok-tx)' : '#E84926', padding: '5px 14px', fontSize: 9, fontWeight: 800, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}
-                            >
-                              {u.banned ? 'REACTIVAR' : 'DESACTIVAR'}
-                            </button>
+                            <span style={{ display: 'inline-flex', gap: 8 }}>
+                              {!u.pendiente && (
+                                <button
+                                  onClick={() => toggleBan(u)}
+                                  style={{ background: 'transparent', border: '1px solid var(--border-in)', color: u.banned ? 'var(--chip-ok-tx)' : '#E84926', padding: '5px 14px', fontSize: 9, fontWeight: 800, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}
+                                >
+                                  {u.banned ? 'REACTIVAR' : 'DESACTIVAR'}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => deleteUser(u)}
+                                title={u.pendiente ? 'Eliminar invitación' : 'Eliminar cuenta'}
+                                style={{ background: 'transparent', border: '1px solid #E84926', color: '#E84926', padding: '5px 14px', fontSize: 9, fontWeight: 800, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}
+                              >
+                                {u.pendiente ? 'ELIMINAR INVITACIÓN' : 'ELIMINAR'}
+                              </button>
+                            </span>
                           )}
                         </td>
                       </tr>
