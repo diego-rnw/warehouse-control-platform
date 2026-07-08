@@ -23,8 +23,10 @@ const SECTIONS: { id: SectionId; label: string }[] = [
 interface AdminUser {
   id: string;
   email: string;
+  nombre: string;
   role: string;
   banned: boolean;
+  pendiente: boolean;
   lastSignIn: string | null;
   createdAt: string;
 }
@@ -88,8 +90,8 @@ export default function Admin() {
   // ===== Usuarios =====
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [usersError, setUsersError] = useState('');
+  const [newNombre, setNewNombre] = useState('');
   const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'almacen' | 'superadmin'>('almacen');
   const [creating, setCreating] = useState(false);
   const [createMsg, setCreateMsg] = useState('');
@@ -108,26 +110,32 @@ export default function Admin() {
     loadUsers();
   }, [loadUsers]);
 
-  async function createUser() {
+  async function inviteUser() {
     setCreateMsg('');
     setUsersError('');
-    if (!newEmail.trim() || !newPassword) {
-      setUsersError('Email y contraseña son obligatorios.');
+    if (!newNombre.trim() || !newEmail.trim()) {
+      setUsersError('Nombre y correo son obligatorios.');
       return;
     }
     setCreating(true);
     try {
       const { data, error } = await supabase.functions.invoke('admin-users', {
-        body: { action: 'create', email: newEmail.trim(), password: newPassword, role: newRole },
+        body: {
+          action: 'invite',
+          nombre: newNombre.trim(),
+          email: newEmail.trim(),
+          role: newRole,
+          redirectTo: window.location.origin + '/activar-cuenta',
+        },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
-      setCreateMsg(`Usuario ${newEmail.trim()} creado.`);
+      setCreateMsg(`Invitación enviada a ${newEmail.trim()}.`);
+      setNewNombre('');
       setNewEmail('');
-      setNewPassword('');
       setNewRole('almacen');
       await loadUsers();
     } catch (e) {
-      setUsersError(e instanceof Error ? e.message : 'No se pudo crear el usuario.');
+      setUsersError(e instanceof Error ? e.message : 'No se pudo enviar la invitación.');
     } finally {
       setCreating(false);
     }
@@ -319,15 +327,15 @@ export default function Admin() {
           {/* ---------- USUARIOS ---------- */}
           {section === 'usuarios' && (
             <>
-              <FormBox title="REGISTRAR NUEVO USUARIO" subtitle="El usuario podrá iniciar sesión de inmediato con la contraseña asignada.">
+              <FormBox title="REGISTRAR NUEVO USUARIO" subtitle="Se enviará una invitación por correo para que el usuario cree su propia contraseña.">
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, flexWrap: 'wrap' }}>
+                  <div>
+                    <label style={labelStyle}>Nombre</label>
+                    <input type="text" value={newNombre} onChange={(e) => setNewNombre(e.target.value)} placeholder="Ej. Sofía Martínez" style={{ ...inputStyle, width: 200 }} />
+                  </div>
                   <div>
                     <label style={labelStyle}>Correo</label>
                     <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="nombre@rockandwok.com" style={{ ...inputStyle, width: 230 }} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Contraseña (mín. 8)</label>
-                    <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ ...inputStyle, width: 170 }} />
                   </div>
                   <div>
                     <label style={labelStyle}>Rol</label>
@@ -336,8 +344,8 @@ export default function Admin() {
                       <option value="superadmin">Superadmin</option>
                     </select>
                   </div>
-                  <button onClick={createUser} disabled={creating} style={{ ...primaryBtn, opacity: creating ? 0.7 : 1, cursor: creating ? 'not-allowed' : 'pointer' }}>
-                    {creating ? 'CREANDO…' : 'CREAR USUARIO'}
+                  <button onClick={inviteUser} disabled={creating} style={{ ...primaryBtn, opacity: creating ? 0.7 : 1, cursor: creating ? 'not-allowed' : 'pointer' }}>
+                    {creating ? 'ENVIANDO…' : 'INVITAR USUARIO'}
                   </button>
                 </div>
                 {usersError && <p style={{ fontSize: 12, color: '#E84926', fontWeight: 600, marginTop: 12 }}>{usersError}</p>}
@@ -345,9 +353,10 @@ export default function Admin() {
               </FormBox>
 
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
                   <thead>
                     <tr>
+                      <th style={th}>Nombre</th>
                       <th style={th}>Correo</th>
                       <th style={th}>Rol</th>
                       <th style={th}>Estado</th>
@@ -358,14 +367,21 @@ export default function Admin() {
                   <tbody>
                     {users.map((u) => (
                       <tr key={u.id}>
-                        <td style={{ ...td, fontWeight: 700, color: 'var(--t1)' }}>{u.email}</td>
+                        <td style={{ ...td, fontWeight: 700, color: 'var(--t1)' }}>{u.nombre || '—'}</td>
+                        <td style={td}>{u.email}</td>
                         <td style={td}>
                           <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: u.role === 'superadmin' ? '#E84926' : 'var(--t6)' }}>
                             {u.role === 'superadmin' ? 'SUPERADMIN' : 'ALMACÉN'}
                           </span>
                         </td>
                         <td style={td}>
-                          <span style={chipEstado(!u.banned)}>{u.banned ? 'DESACTIVADO' : 'ACTIVO'}</span>
+                          {u.banned ? (
+                            <span style={chipEstado(false)}>DESACTIVADO</span>
+                          ) : u.pendiente ? (
+                            <span style={{ background: '#1e1400', color: '#FFCD02', border: '1px solid #b58900', padding: '3px 10px', fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'inline-block' }}>INVITADO</span>
+                          ) : (
+                            <span style={chipEstado(true)}>ACTIVO</span>
+                          )}
                         </td>
                         <td style={{ ...td, fontSize: 12, color: 'var(--t7)' }}>
                           {u.lastSignIn ? new Date(u.lastSignIn).toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' }) : 'Nunca'}

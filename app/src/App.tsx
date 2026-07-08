@@ -10,6 +10,7 @@ import Requisiciones from './pages/Requisiciones';
 import Comparativo from './pages/Comparativo';
 import CapturaMovil from './pages/CapturaMovil';
 import Admin from './pages/Admin';
+import ActivarCuenta from './pages/ActivarCuenta';
 
 function AppRoutes() {
   const { session, isLoading, isSuperadmin } = useAuth();
@@ -56,6 +57,8 @@ export default function App() {
         <Routes>
           {/* Ruta móvil de captura: sin login, sin nav — session_id del QR es el único control de acceso */}
           <Route path="/captura-movil/:sessionId" element={<CapturaMovil />} />
+          {/* Activación de cuenta por invitación: el token del correo crea la sesión */}
+          <Route path="/activar-cuenta" element={<ActivarCuenta />} />
           <Route
             path="*"
             element={

@@ -40,29 +40,34 @@ Deno.serve(async (req) => {
         users: data.users.map((u) => ({
           id: u.id,
           email: u.email,
+          nombre: (u.user_metadata?.nombre as string) ?? '',
           role: u.app_metadata?.role ?? 'almacen',
           banned: Boolean((u as { banned_until?: string }).banned_until && new Date((u as { banned_until?: string }).banned_until!) > new Date()),
+          pendiente: !u.last_sign_in_at,
           lastSignIn: u.last_sign_in_at,
           createdAt: u.created_at,
         })),
       });
     }
 
-    if (body.action === 'create') {
-      const { email, password, role } = body;
-      if (!email || !password) return json({ error: 'Email y contraseña son obligatorios.' }, 400);
-      if (password.length < 8) return json({ error: 'La contraseña debe tener al menos 8 caracteres.' }, 400);
-      const { data, error } = await admin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        app_metadata: { role: role === 'superadmin' ? 'superadmin' : 'almacen' },
+    if (body.action === 'invite') {
+      const { email, nombre, role, redirectTo } = body;
+      if (!email || !nombre) return json({ error: 'Nombre y correo son obligatorios.' }, 400);
+      const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+        data: { nombre },
+        redirectTo: redirectTo || undefined,
       });
       if (error) {
-        if (/already been registered/i.test(error.message)) {
+        if (/already been registered|already registered/i.test(error.message)) {
           return json({ error: 'Ese correo ya está registrado.' }, 409);
         }
         throw error;
+      }
+      // El rol vive en app_metadata (no se puede setear en inviteUserByEmail)
+      if (data.user) {
+        await admin.auth.admin.updateUserById(data.user.id, {
+          app_metadata: { role: role === 'superadmin' ? 'superadmin' : 'almacen' },
+        });
       }
       return json({ ok: true, id: data.user?.id });
     }
