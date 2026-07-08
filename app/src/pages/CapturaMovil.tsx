@@ -17,11 +17,14 @@ export default function CapturaMovil() {
   const [error, setError] = useState('');
   const [totalEnviadas, setTotalEnviadas] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Ref para cleanup en unmount — evita stale closure sobre `queue`
+  const queueRef = useRef<QueuedPhoto[]>([]);
 
-  // Liberar object URLs al desmontar
+  useEffect(() => { queueRef.current = queue; }, [queue]);
+
   useEffect(() => {
-    return () => queue.forEach((q) => URL.revokeObjectURL(q.objectUrl));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => queueRef.current.forEach((q) => URL.revokeObjectURL(q.objectUrl));
+  }, []);
 
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
@@ -149,11 +152,13 @@ export default function CapturaMovil() {
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
           cursor: uploading ? 'not-allowed' : 'pointer',
+          pointerEvents: uploading ? 'none' : 'auto',
           display: 'flex',
           alignItems: 'center',
           gap: 10,
           width: '100%',
           maxWidth: 400,
+          boxSizing: 'border-box',
           justifyContent: 'center',
           marginBottom: queue.length > 0 ? 12 : 0,
         }}
@@ -185,6 +190,7 @@ export default function CapturaMovil() {
             gap: 10,
             width: '100%',
             maxWidth: 400,
+            boxSizing: 'border-box' as const,
             opacity: uploading ? 0.7 : 1,
           }}
         >
