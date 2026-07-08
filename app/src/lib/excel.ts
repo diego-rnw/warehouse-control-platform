@@ -23,13 +23,17 @@ export function validateExcelFile(file: File): string | null {
 
 // Convierte valores numéricos de Foodbot a number de forma robusta.
 // Formato del documento: coma = separador de millares, punto = decimal.
-//   "1,500.000" → 1500  |  "2.000" → 2  |  1500 (numérico) → 1500
+// La celda puede incluir la unidad de presentación después del primer número
+// (ej: "5.000 G3.785" o "2.000 pz") — solo interesa el PRIMER número.
+//   "1,500.000" → 1500  |  "2.000" → 2  |  "5.000 G3.785" → 5  |  1500 → 1500
 function parseFoodbotNumber(raw: unknown): number {
   if (typeof raw === 'number') return raw;
   if (typeof raw !== 'string') return NaN;
-  const cleaned = raw.replace(/[^0-9.,-]/g, '').replace(/,/g, '');
-  if (!cleaned) return NaN;
-  return Number(cleaned);
+  // Captura el primer número al inicio (con comas de millares y decimal opcional)
+  // y descarta todo lo que siga (espacio, letras, presentación).
+  const match = raw.trim().match(/^-?[\d,]+(?:\.\d+)?/);
+  if (!match) return NaN;
+  return Number(match[0].replace(/,/g, ''));
 }
 
 function parseFoodbotDate(raw: string): string {
@@ -75,11 +79,13 @@ export async function parseFoodbotExcel(file: File): Promise<ParsedFoodbotExcel>
   const colProducto = headers.indexOf('Producto');
   // Cantidad SOLICITADA: lo que se pidió en Foodbot — es la base de la conciliación
   // contra la "Cantidad enviada" que se extrae de las fotos del documento físico.
-  const colCantidad = headers.indexOf('Cantidad solicitada (Unidad)');
+  // La celda puede traer la presentación después de un espacio: "5.000 G3.785"
+  // → solo interesa el primer número ("5.000" = 5).
+  const colCantidad = headers.indexOf('Cantidad solicitada');
   const colPrecio = headers.indexOf('Precio enviado'); // precio unitario
 
   if (colProducto === -1 || colCantidad === -1 || colPrecio === -1) {
-    throw new Error('El archivo no tiene las columnas esperadas: Producto, Cantidad solicitada (Unidad), Precio enviado.');
+    throw new Error('El archivo no tiene las columnas esperadas: Producto, Cantidad solicitada, Precio enviado.');
   }
 
   // Leer renglones de producto y buscar el total del footer
