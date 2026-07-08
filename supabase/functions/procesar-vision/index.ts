@@ -55,10 +55,20 @@ Para cada fila transcrita, asigna el nombre de esta lista que corresponda al tex
 Usa el nombre EXACTO de la lista, carácter por carácter.
 Solo si una fila no corresponde a NINGÚN producto de la lista, transcribe su texto tal cual.
 
+═══ PROCESO POR FILA (dos pasos, en orden) ═══
+Para CADA fila de la tabla, de arriba a abajo:
+PASO A — TRANSCRIPCIÓN LITERAL: escribe en "fila" el número de fila (1, 2, 3...) y en
+  "texto_visible" el nombre del producto TAL CUAL lo ves en la imagen, sin corregirlo.
+  Esto te obliga a mirar la fila real antes de decidir nada.
+PASO B — DATOS: con la vista anclada en ESA fila, lee su "Cantidad enviada", su unidad
+  y su "Precio enviado". Los tres valores deben venir de la MISMA fila horizontal que
+  el texto que transcribiste — nunca de la fila de arriba o abajo.
+Después asigna "producto" = el nombre de la lista canónica que corresponde a "texto_visible".
+
 ═══ VERIFICACIÓN ANTES DE RESPONDER ═══
-1. ¿Transcribiste TODAS las filas de producto de la imagen? Cuenta las filas visibles y compara.
+1. ¿El número de "fila" avanza 1, 2, 3... sin saltos? Si saltaste un número, te faltó una fila.
 2. ¿Cada cantidad respeta la regla del punto decimal?
-3. ¿Cada nombre está copiado exacto de la lista?
+3. ¿Cada "producto" está copiado exacto de la lista canónica?
 Asigna "confianza" honesta por fila: 1.0 = lectura perfecta, <0.75 = valor dudoso.
 Si esta página muestra el TOTAL del documento al pie, inclúyelo (misma regla decimal); si no, usa null.
 Solo omite una fila si su cantidad es COMPLETAMENTE ilegible.
@@ -68,6 +78,8 @@ Devuelve SOLO este JSON (sin markdown, sin texto extra):
   "total": numero_o_null,
   "renglones": [
     {
+      "fila": numero de fila 1..N,
+      "texto_visible": "texto literal del producto en la imagen",
       "producto": "nombre exacto de la lista",
       "cantidad": numero,
       "unidad": "pza"|"kg"|"lt",
@@ -137,14 +149,20 @@ Deno.serve(async (req) => {
           type: 'ARRAY',
           items: {
             type: 'OBJECT',
+            // El orden de las propiedades importa: fila y texto_visible van ANTES
+            // que los números para forzar la transcripción literal primero
+            // (anclaje por fila) y luego la lectura de valores de esa misma fila.
             properties: {
+              fila: { type: 'NUMBER' },
+              texto_visible: { type: 'STRING' },
               producto: { type: 'STRING' },
               cantidad: { type: 'NUMBER' },
               unidad: { type: 'STRING', enum: ['pza', 'kg', 'lt'] },
               costo: { type: 'NUMBER' },
               confianza: { type: 'NUMBER' },
             },
-            required: ['producto', 'cantidad', 'unidad'],
+            required: ['fila', 'texto_visible', 'producto', 'cantidad', 'unidad'],
+            propertyOrdering: ['fila', 'texto_visible', 'producto', 'cantidad', 'unidad', 'costo', 'confianza'],
           },
         },
       },
