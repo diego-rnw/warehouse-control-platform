@@ -199,26 +199,38 @@ Deno.serve(async (req) => {
       const base64 = btoa(bytes.reduce((acc, b) => acc + String.fromCharCode(b), ''));
       const imagePart = { inlineData: { mimeType: blob.type || 'image/jpeg', data: base64 } };
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [imagePart, { text: prompt }] }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema,
-              thinkingConfig: { thinkingBudget: 8192 },
-              // Resolución alta: evita que Gemini comprima la imagen y pierda
-              // detalle en tablas densas (números pequeños, renglones juntos).
-              mediaResolution: 'MEDIA_RESOLUTION_HIGH',
-            },
-          }),
-        },
-      );
-      if (!response.ok) {
-        throw new Error(`Gemini respondió ${response.status}: ${await response.text()}`);
+      // Reintentos con backoff exponencial para errores transitorios de Gemini
+      // (503 = sobrecarga, 429 = rate limit). 4 intentos: 0s, 3s, 8s, 20s.
+      const RETRY_DELAYS = [0, 3000, 8000, 20000];
+      let response: Response | null = null;
+      let lastErrorText = '';
+      for (const delay of RETRY_DELAYS) {
+        if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [imagePart, { text: prompt }] }],
+              generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema,
+                thinkingConfig: { thinkingBudget: 8192 },
+                // Resolución alta: evita que Gemini comprima la imagen y pierda
+                // detalle en tablas densas (números pequeños, renglones juntos).
+                mediaResolution: 'MEDIA_RESOLUTION_HIGH',
+              },
+            }),
+          },
+        );
+        if (response.ok) break;
+        lastErrorText = await response.text();
+        // Solo reintenta errores transitorios; otros (400, 401...) fallan de inmediato
+        if (response.status !== 503 && response.status !== 429 && response.status < 500) break;
+      }
+      if (!response || !response.ok) {
+        throw new Error(`Gemini respondió ${response?.status}: ${lastErrorText}`);
       }
       const result = await response.json();
 
